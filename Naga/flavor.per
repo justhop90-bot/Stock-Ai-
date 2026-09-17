@@ -1,0 +1,99 @@
+#load-if-defined UP-HUMAN-ALLY
+(defrule
+	(up-allied-goal any-computer-ally identity == Naga)
+	(up-compare-goal gl-game-time g:>= gl-random-number)
+	(game-time >= 16)
+	(up-modify-goal temporary-goal g:= gl-random-number)
+	(up-modify-goal temporary-goal c:mod 2)
+	(up-compare-goal temporary-goal >= 1)
+	(up-get-fact-min any-computer-ally player-number 0 temporary-goal)
+	(up-compare-goal temporary-goal >= my-player-number)
+=>
+	(chat-to-allies "Naga & human alliance, let's go!")
+	(disable-self))
+(defrule
+	(up-allied-goal any-computer-ally identity == Naga)
+	(up-compare-goal gl-game-time g:>= gl-random-number)
+	(game-time >= 24)
+	(up-modify-goal temporary-goal g:= gl-random-number)
+	(up-modify-goal temporary-goal c:mod 2)
+	(up-compare-goal temporary-goal >= 1)
+	(up-get-fact-max any-computer-ally player-number 0 temporary-goal)
+	(up-compare-goal temporary-goal <= my-player-number)
+=>
+	(chat-to-allies "Let's show them what we've got.")
+	(disable-self))
+#end-if
+(defrule
+	(game-time >= 20)
+	(up-compare-goal gl-random-number <= 1)
+	(up-allied-goal any-computer-ally identity == TheGeneral)
+=>
+	(up-store-player-name this-any-computer-ally)
+	(up-chat-data-to-player every-ally "%s" c: 7031232)
+	(chat-to-player-using-id every-ally 203604)
+	(disable-self))
+(defrule
+	(game-time >= 20)
+	(up-compare-goal gl-random-number == 2)
+	(players-current-age every-ally >= castle-age)
+	(up-allied-goal any-computer-ally identity == Illuminati)
+=>
+	(up-store-player-name this-any-computer-ally)
+	(up-chat-data-to-player every-ally "%s" c: 7031232)
+	(chat-to-player-using-id every-ally 61628)
+	(disable-self))
+(defrule
+	(game-time >= 90)
+	(player-in-game any-human-ally)
+	(players-current-age any-ally >= feudal-age)
+	(strategic-number sn-current-age >= dfeudal)
+	(goal under-attack yes)
+	(strategic-number sn-military-superiority <= -3)
+	(up-compare-goal gl-random-number <= 89)
+	(up-compare-goal gl-random-number >= 80)
+=>
+	(chat-to-player-using-id every-ally 13088); "Dying"
+	(disable-self))
+(defrule
+	(game-time >= 58)
+	(up-compare-goal gl-random-number <= 79)
+	(up-compare-goal gl-random-number >= 70)
+	(players-current-age every-ally <= dark-age)
+(or	(players-unit-type-count any-ally militiaman >= 2)
+	(and	(up-allied-goal any-computer-ally identity == Naga)
+		(or	(up-allied-goal any-computer-ally strategy == drush)
+			(up-allied-goal any-computer-ally strategy == maa-opener))))
+=>
+	(up-store-player-name this-any-computer-ally)
+	(up-chat-data-to-player every-ally "%s" c: 7031232)
+	(chat-to-player-using-id every-ally 44225)
+	(disable-self))
+(defrule
+	(game-time >= 90)
+	(up-compare-goal gl-random-number <= 69)
+	(up-compare-goal gl-random-number >= 60)
+	(strategic-number sn-current-age >= dfeudal)
+	(goal under-attack yes)
+	(players-civ focus-player briton)
+=>
+	(chat-to-all-using-id 44317)
+	(disable-self))
+(defrule
+	(game-time >= 600)
+	(up-compare-goal gl-random-number < 20)
+(or	(and	(player-resigned any-enemy)
+		(strategic-number sn-team-superiority <= -3))
+	(and	(player-resigned any-ally)
+		(strategic-number sn-team-superiority >= 3)))
+=>
+	(chat-to-all-using-id 3103)
+	(disable-self))
+(defrule
+	(game-time <= 0)
+	(up-compare-goal gl-random-number == 28)
+	(building-type-count town-center >= 1)
+	(up-allied-goal any-computer-ally identity != Naga)
+=>
+	(chat-to-all-using-id 72610)
+	(disable-self))

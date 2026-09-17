@@ -1,0 +1,224 @@
+(defrule
+	(true)
+=>
+	(up-set-target-point building-x)
+	(up-full-reset-search))
+(defrule
+	(up-compare-goal forward-flag != 0)
+(or	(up-compare-goal forward-x != -1)
+	(up-compare-goal forward-y != -1))
+=>
+	(up-set-target-point forward-x))
+(defrule
+	(strategic-number sn-consecutive-idle-unit-limit >= 1)
+	(up-compare-const diff-fp != 1)
+	(up-add-object-by-id search-local g: scouting-unit)
+	(up-set-target-object search-local c: 0)
+	(up-object-data object-data-attack-stance != stance-stand-ground)
+=>
+	(up-remove-objects search-local object-data-id g:!= scouting-unit)
+	(up-target-point 0 action-none -1 stance-stand-ground))
+(defrule
+	(up-timer-status stance-timer != timer-running)
+;(or	(strategic-number sn-total-number-explorers <= 0)
+;	(military-population >= 2))
+	(military-population >= 1)
+(or	(goal attacking yes)
+;(or
+	(and	(up-timer-status reset-now-timer != timer-running)
+		(up-timer-status reset-navy-timer != timer-running))
+;(and;(or
+;	(up-projectile-detected projectile-fortification >= 5000)
+;	(up-compare-goal gl-threat-time >= 5000)))
+)
+=>
+	(up-set-attack-stance -1 c: stance-aggressive)
+	(enable-timer stance-timer 12))
+(defrule
+(or	(strategic-number sn-total-number-explorers <= 0)
+	(military-population >= 2))
+	(military-population >= 1)
+=>
+	(up-full-reset-search)
+	(up-filter-include cmdid-military -1 -1 -1)
+	(up-filter-exclude -1 actionid-attack orderid-explore -1)
+	(up-find-local c: all-units-class c: 240)
+	(up-remove-objects search-local object-data-idling != 1)
+	(up-remove-objects search-local object-data-attack-stance != stance-no-attack)
+	(up-target-point 0 action-none -1 stance-aggressive))
+(defrule
+	(military-population >= 1)
+=>
+	(up-full-reset-search)
+	(up-filter-include cmdid-military actionid-attack -1 -1)
+	(up-filter-exclude -1 actionid-move orderid-enter -1)
+	(up-find-local c: all-units-class c: 240)
+	(up-remove-objects search-local object-data-target-id <= -1)
+	(up-remove-objects search-local object-data-attack-stance == stance-no-attack)
+	(set-goal temporary-goal 0)
+	(set-goal temporary-goal2 0)
+	(set-goal temporary-goal3 0))
+(defrule ; end neg jump
+	(military-population >= 1)
+	(up-set-target-object search-local g: temporary-goal)
+	(up-object-target-data object-data-garrisoned == 1)
+=>
+;	(chat-local-to-self "Debugging unit targeting.")
+	(up-remove-objects search-local object-data-index g:!= temporary-goal)
+	(up-target-point 0 action-stop -1 stance-aggressive)
+	(up-jump-rule 2))
+(defrule
+	(military-population >= 1)
+	(up-set-target-object search-local g: temporary-goal)
+=>
+	(up-modify-goal temporary-goal c:+ 1)
+	(up-jump-rule -2))
+(defrule
+	(military-population >= 1)
+	(goal temporary-goal2 0)
+=>
+	(up-full-reset-search)
+	(up-filter-include cmdid-monk actionid-convert -1 -1)
+	(up-filter-exclude -1 actionid-move orderid-enter -1)
+	(up-find-local c: all-units-class c: 240)
+	(up-remove-objects search-local object-data-target-id <= -1)
+	(set-goal temporary-goal 0)
+	(set-goal temporary-goal2 1)
+	(up-jump-rule -3)); end jump
+(defrule
+	(true)
+=>
+	(up-set-attack-stance building-class c: stance-aggressive)
+	(up-set-attack-stance tower-class c: stance-aggressive)
+	(up-full-reset-search)
+	(up-find-local c: town-center c: 10)
+	(up-find-local c: castle c: 10)
+	(up-find-local c: watch-tower c: 10)
+	(up-find-local c: guard-tower c: 10)
+	(up-find-local c: keep c: 10)
+	(up-find-local c: donjon c: 10)
+	(up-find-local c: krepost c: 10)
+	(up-find-local c: 1806 c: 10)
+	(up-find-local c: harbor c: 10)
+	(up-remove-objects search-local object-data-attack-stance == stance-aggressive))
+(defrule
+	(up-set-target-object search-local c: 0)
+=>
+;	(up-get-object-data object-data-attack-stance temporary-goal)
+;	(up-chat-data-to-self "Debugging building stance: %d." g: temporary-goal)
+	(up-target-point 0 action-none -1 stance-aggressive))
+(defrule
+	(taunt-detected my-player-number 123)
+=>
+	(up-get-precise-time 9898 9899)
+	(up-chat-data-to-all "elapsed time: %d" g: 9899))
+(defrule
+	(up-timer-status three-seconds != timer-running)
+=>
+	(disable-timer three-seconds)
+	(enable-timer three-seconds 3))
+(defrule
+	(up-timer-status five-seconds != timer-running)
+=>
+	(disable-timer five-seconds)
+	
+	(enable-timer five-seconds 5))
+(defrule
+	(up-timer-status ten-seconds != timer-running)
+=>
+	(disable-timer ten-seconds)
+	(enable-timer ten-seconds 10))
+(defrule
+	(up-timer-status fifteen-seconds != timer-running)
+=>
+	(disable-timer fifteen-seconds)
+	(enable-timer fifteen-seconds 15))
+(defrule
+	(up-timer-status twenty-seconds != timer-running)
+=>
+	(disable-timer twenty-seconds)
+	(enable-timer twenty-seconds 20))
+(defrule
+	(up-timer-status thirty-seconds != timer-running)
+=>
+	(disable-timer thirty-seconds)
+	(enable-timer thirty-seconds 30))
+(defrule
+	(up-timer-status one-minute != timer-running)
+=>
+	(disable-timer one-minute)
+	(enable-timer one-minute 60))
+(defrule
+	(up-timer-status two-minutes != timer-running)
+=>
+	(disable-timer two-minutes)
+	(enable-timer two-minutes 120))
+(defrule
+	(up-timer-status market-flare-timer == timer-triggered)
+=>
+	(disable-timer market-flare-timer))
+(defrule
+	(false)
+	(building-type-count town-center >= 1)
+=>
+	(up-full-reset-search)
+	(up-find-local c: villager-class g: villager-count)
+	(up-remove-objects search-local object-data-gather-type == food)
+	(up-get-search-state local-total)
+	(up-chat-data-to-all "lt: %d" g: local-total))
+(defrule
+(taunt-detected my-player-number 129)
+=>
+(up-chat-data-to-player my-player-number "max-farms: %d" g: max-farms)
+(up-chat-data-to-player my-player-number "construct-farm: %d" g: construct-farm)
+(up-chat-data-to-player my-player-number "effective-fish: %d" g: effective-fish)
+(up-chat-data-to-player my-player-number "map-type: %d" g: map-type)
+(up-chat-data-to-player my-player-number "close-tree-count: %d" g: close-tree-count)
+(up-chat-data-to-player my-player-number "sn-dock-training-filter: %d" s: sn-dock-training-filter)
+(up-chat-data-to-player my-player-number "strategy-affinity: %d" g: strategy-affinity)
+(acknowledge-taunt my-player-number 129))
+(defrule
+	(taunt-detected my-player-number 231)
+=>
+	(up-chat-data-to-self "sn-percent-civilian-explorers: %d." s: sn-percent-civilian-explorers)
+	(up-chat-data-to-self "sn-minimum-civilian-explorers: %d." s: sn-minimum-civilian-explorers)
+	(up-chat-data-to-self "sn-cap-civilian-explorers: %d." s: sn-cap-civilian-explorers)
+	(up-chat-data-to-self "sn-total-number-explorers: %d." s: sn-total-number-explorers)
+	(up-chat-data-to-self "sn-number-explore-groups: %d." s: sn-number-explore-groups)
+	(up-chat-data-to-self "scout-count: %d" g: scout-count)
+	(up-chat-data-to-self "sn-number-boat-attack-groups: %d." s: sn-number-boat-attack-groups)
+	(up-chat-data-to-self "sn-number-boat-explore-groups: %d." s: sn-number-boat-explore-groups)
+	(acknowledge-taunt my-player-number 231))
+(defrule
+	(taunt-detected my-player-number 232)
+=>
+	(up-chat-data-to-self "sn-cavalry: %d." s: sn-cavalry)
+	(up-chat-data-to-self "sn-infantry: %d." s: sn-infantry)
+	(up-chat-data-to-self "sn-ranged: %d." s: sn-ranged)
+	(up-chat-data-to-self "sn-monksiege: %d." s: sn-monksiege)
+	(up-chat-data-to-self "sn-spears: %d." s: sn-spears)
+	(up-chat-data-to-self "essential-soldiercount: %d." g: essential-soldiercount)
+	(up-chat-data-to-self "p-f: %d" g: pond-fishing)
+	(acknowledge-taunt my-player-number 232))
+(defrule
+	(taunt-detected my-player-number 233)
+=>
+	(up-chat-data-to-self "sn-number-civilian-militia: %d." s: sn-number-civilian-militia)
+	(up-chat-data-to-self "sn-villager-attack-reset: %d." s: sn-villager-attack-reset)
+	(up-chat-data-to-self "sn-allow-civilian-defense: %d." s: sn-allow-civilian-defense)
+	(up-chat-data-to-self "sn-allow-civilian-offense: %d." s: sn-allow-civilian-offense)
+	(up-chat-data-to-self "desired-trade-pop: %d." g: desired-trade-pop)
+	(up-chat-data-to-self "wall-strength: %d." g: wall-strength)
+	(up-chat-data-to-self "micro-flag: %d." g: micro-flag)
+	(acknowledge-taunt my-player-number 233))
+(defrule
+	(taunt-detected my-player-number 234)
+=>
+	(up-chat-data-to-self "deer-luring: %d." g: deer-luring)
+	(up-chat-data-to-self "sn-camels: %d." s: sn-camels)
+	(up-chat-data-to-self "sn-shock-infantry: %d" s: sn-shock-infantry)
+	(up-chat-data-to-self "sn-husks: %d" s: sn-husks)
+	(up-chat-data-to-self "sn-skirms: %d" s: sn-skirms)
+	(up-chat-data-to-self "max-navy: %d." g: max-navy)
+	(up-chat-data-to-self "starting-dropsite-flag: %d." g: starting-dropsite-flag)
+	(acknowledge-taunt my-player-number 234))

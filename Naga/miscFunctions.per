@@ -1,0 +1,243 @@
+(defrule
+	(up-compare-goal ship-selection-function-id < 10000)
+=>
+	(up-jump-rule 41))
+(defrule
+	(true)
+=>
+	(up-get-rule-id ship-selection-function-id)
+	(up-jump-rule 40)
+	(disable-self))
+(defrule
+	(true)
+=>
+	(set-goal primary-ship -1)
+	(set-goal temporary-goal galley-line)
+	(set-goal temporary-goal2 0)
+	(set-goal temporary-goal3 -1))
+(defrule ; end neg jump
+	(goal temporary-goal galley-line)
+(not	(unit-available galley-line))
+=>
+	(up-modify-goal temporary-goal2 c:- 5000)
+	(up-jump-rule 6))
+(defrule
+	(goal temporary-goal galley-line)
+(or	(up-research-status c: imperial-age <= research-available)
+	(up-compare-const GALLEON-AVAILABLE == YES))
+=>
+	(up-modify-goal temporary-goal2 c:+ 100))
+(defrule
+	(goal temporary-goal galley-line)
+(or	(up-compare-goal target-distance >= 126)
+(or	(and	(goal player-position pocket)
+		(up-compare-goal target-distance >= 90))
+	(up-compare-goal map-type >= type-islands)))
+=>
+	(up-modify-goal temporary-goal2 c:+ 20))
+(defrule
+	(goal temporary-goal galley-line)
+	(up-research-status c: ri-fletching >= research-pending)
+=>
+	(up-modify-goal temporary-goal2 c:+ 25))
+(defrule
+	(goal temporary-goal galley-line)
+	(up-research-status c: ri-bodkin-arrow >= research-pending)
+=>
+	(up-modify-goal temporary-goal2 c:+ 25))
+(defrule
+	(goal temporary-goal galley-line)
+	(up-research-status c: ri-bracer >= research-pending)
+=>
+	(up-modify-goal temporary-goal2 c:+ 25))
+(defrule
+	(goal temporary-goal galley-line)
+(or	(up-research-status c: ri-ballistas >= research-available)
+(or	(up-research-status c: ri-cilician-fleet >= research-available)
+(or	(civ-selected armenians)
+(or	(civ-selected romans)
+	(civ-selected saracen)))))
+=>
+	(up-modify-goal temporary-goal2 c:+ 100)); end mini jump
+(defrule
+	(goal temporary-goal fire-galley-line)
+(not	(unit-available fire-galley-line))
+=>
+	(up-modify-goal temporary-goal2 c:- 5000)
+	(up-jump-rule 4))
+(defrule
+	(goal temporary-goal fire-galley-line)
+(or	(up-research-status c: castle-age <= research-available)
+	(up-compare-const FIRE-SHIP-AVAILABLE == YES))
+(or	(up-research-status c: imperial-age <= research-available)
+	(up-compare-const FAST-FIRE-SHIP-AVAILABLE == YES))
+=>
+	(up-modify-goal temporary-goal2 c:+ 100))
+(defrule
+	(goal temporary-goal fire-galley-line)
+	(up-research-status c: ri-siphons >= research-pending)
+=>
+	(up-modify-goal temporary-goal2 c:+ 50))
+(defrule
+	(goal temporary-goal fire-galley-line)
+	(up-research-status c: ri-incendiaries >= research-pending)
+=>
+	(up-modify-goal temporary-goal2 c:+ 50))
+(defrule
+	(goal temporary-goal fire-galley-line)
+(or	(up-research-status c: ri-greek-fire >= research-available)
+	(civ-selected byzantine))
+=>
+	(up-modify-goal temporary-goal2 c:+ 100)); end mini jump
+(defrule
+	(goal temporary-goal hulk-line)
+(not	(unit-available hulk-line))
+=>
+	(up-modify-goal temporary-goal2 c:- 5000)
+	(up-jump-rule 5))
+(defrule
+	(goal temporary-goal hulk-line)
+(or	(up-research-status c: castle-age <= research-available)
+	(up-compare-const WAR-HULK-AVAILABLE == YES))
+(or	(up-research-status c: imperial-age <= research-available)
+	(up-compare-const CARRACK-AVAILABLE == YES))
+=>
+	(up-modify-goal temporary-goal2 c:+ 100))
+(defrule
+	(goal temporary-goal hulk-line)
+	(up-research-status c: ri-forging >= research-pending)
+=>
+	(up-modify-goal temporary-goal2 c:+ 25))
+(defrule
+	(goal temporary-goal hulk-line)
+	(up-research-status c: ri-iron-casting >= research-pending)
+=>
+	(up-modify-goal temporary-goal2 c:+ 25))
+(defrule
+	(goal temporary-goal hulk-line)
+	(up-research-status c: ri-blast-furnace >= research-pending)
+=>
+	(up-modify-goal temporary-goal2 c:+ 25))
+(defrule
+	(goal temporary-goal hulk-line)
+	(civ-selected khitans)
+=>
+	(up-modify-goal temporary-goal2 c:+ 25)); end mini jump
+(defrule
+	(goal temporary-goal demolition-ship-line)
+(not	(unit-available demolition-ship-line))
+=>
+	(up-modify-goal temporary-goal2 c:- 5000)
+	(up-jump-rule 3))
+(defrule
+	(goal temporary-goal demolition-ship-line)
+=>
+	(up-modify-goal temporary-goal2 c:- 1000))
+(defrule
+	(goal temporary-goal demolition-ship-line)
+(or	(up-research-status c: ri-cilician-fleet >= research-available)
+	(up-research-status c: ri-red-cliffs-tactics >= research-available))
+=>
+	(up-modify-goal temporary-goal2 c:+ 100))
+(defrule
+	(goal temporary-goal demolition-ship-line)
+(or	(up-research-status c: ri-heavy-demolition-ship >= research-pending)
+	(and	(up-research-status c: ri-demolition-ship >= research-pending)
+		(and	(up-research-status c: imperial-age <= research-pending)
+			(or	(up-research-status c: imperial-age <= research-available)
+				(up-compare-const HEAVY-DEMOLITION-SHIP-AVAILABLE == YES)))))
+=>
+	(up-modify-goal temporary-goal2 c:+ 100)); end mini jump
+(defrule
+	(goal temporary-goal caravel-line)
+(not	(unit-available caravel-line))
+=>
+	(up-modify-goal temporary-goal2 c:- 5000)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal caravel-line)
+=>
+	(up-modify-goal temporary-goal2 c:+ 400)); end mini jump
+(defrule
+	(goal temporary-goal longboat-line)
+(not	(unit-available longboat-line))
+=>
+	(up-modify-goal temporary-goal2 c:- 5000)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal longboat-line)
+=>
+	(up-modify-goal temporary-goal2 c:+ 400)); end mini jump
+(defrule
+	(goal temporary-goal turtle-ship-line)
+(not	(unit-available turtle-ship-line))
+=>
+	(up-modify-goal temporary-goal2 c:- 5000)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal turtle-ship-line)
+=>
+	(up-modify-goal temporary-goal2 c:+ 400)); end mini jump
+(defrule
+	(goal temporary-goal thirisadai)
+(not	(unit-available thirisadai))
+=>
+	(up-modify-goal temporary-goal2 c:- 5000)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal thirisadai)
+=>
+	(up-modify-goal temporary-goal2 c:+ 400)); end mini jump
+(defrule
+	(up-compare-goal temporary-goal != -1)
+	(up-compare-goal temporary-goal2 g:> temporary-goal3)
+=>
+	(up-modify-goal primary-ship g:= temporary-goal)
+;	(up-chat-data-to-all "ps: %d" g: temporary-goal)
+	(up-modify-goal temporary-goal3 g:= temporary-goal2))
+(defrule
+	(goal temporary-goal galley-line)
+=>
+	(set-goal temporary-goal fire-galley-line)
+	(set-goal temporary-goal2 0)
+	(up-jump-rule -32))
+(defrule
+	(goal temporary-goal fire-galley-line)
+=>
+	(set-goal temporary-goal hulk-line)
+	(set-goal temporary-goal2 0)
+	(up-jump-rule -33))
+(defrule
+	(goal temporary-goal hulk-line)
+=>
+	(set-goal temporary-goal demolition-ship-line)
+	(set-goal temporary-goal2 0)
+	(up-jump-rule -34))
+(defrule
+	(goal temporary-goal demolition-ship-line)
+=>
+	(set-goal temporary-goal caravel-line)
+	(set-goal temporary-goal2 0)
+	(up-jump-rule -35))
+(defrule
+	(goal temporary-goal caravel-line)
+=>
+	(set-goal temporary-goal longboat-line)
+	(set-goal temporary-goal2 0)
+	(up-jump-rule -36))
+(defrule
+	(goal temporary-goal longboat-line)
+=>
+	(set-goal temporary-goal turtle-ship-line)
+	(set-goal temporary-goal2 0)
+	(up-jump-rule -37))
+(defrule
+	(goal temporary-goal turtle-ship-line)
+=>
+	(set-goal temporary-goal thirisadai)
+	(set-goal temporary-goal2 0)
+	(up-jump-rule -38))
+(defrule
+	(true)
+=>
+	(up-jump-direct g: temporary-goal16)); end jump

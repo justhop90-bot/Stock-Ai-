@@ -1,0 +1,1381 @@
+;=============================================================
+; Camps
+;=============================================================
+(defrule
+	(taunt-detected my-player-number 161)
+=>
+	(set-goal temporary-goal lumber-camp)
+	(set-goal temporary-goal2 tree-class)
+	(set-strategic-number sn-allow-adjacent-dropsites 1)
+	(up-get-rule-id temporary-goal16)
+	(up-modify-goal temporary-goal16 c:+ 1)
+	(up-jump-direct g: camp-function-id)
+	(acknowledge-taunt my-player-number 161))
+(defrule
+	(taunt-detected my-player-number 162)
+=>
+	(set-goal temporary-goal mining-camp)
+	(set-goal temporary-goal2 gold-mine-class)
+	(set-strategic-number sn-allow-adjacent-dropsites 0)
+	(up-get-rule-id temporary-goal16)
+	(up-modify-goal temporary-goal16 c:+ 1)
+	(up-jump-direct g: camp-function-id)
+	(acknowledge-taunt my-player-number 162))
+(defrule
+	(taunt-detected my-player-number 163)
+=>
+	(set-goal temporary-goal mill)
+	(set-goal temporary-goal2 forage-bush-class)
+	(set-strategic-number sn-allow-adjacent-dropsites 0)
+	(up-get-rule-id temporary-goal16)
+	(up-modify-goal temporary-goal16 c:+ 1)
+	(up-jump-direct g: camp-function-id)
+	(acknowledge-taunt my-player-number 163))
+(defrule
+	(taunt-detected my-player-number 164)
+=>
+	(set-goal temporary-goal town-center-foundation)
+	(set-goal temporary-goal2 tree-class)
+	(set-strategic-number sn-allow-adjacent-dropsites 1)
+	(set-strategic-number sn-dropsite-separation-distance 4); 3
+	(up-get-rule-id temporary-goal16)
+	(up-modify-goal temporary-goal16 c:+ 1)
+	(up-jump-direct g: camp-function-id)
+	(acknowledge-taunt my-player-number 164))
+(defrule
+	(taunt-detected my-player-number 165)
+=>
+	(set-goal temporary-goal mule-cart)
+	(set-goal temporary-goal2 tree-class)
+	(set-strategic-number sn-allow-adjacent-dropsites 1)
+	(up-get-rule-id temporary-goal16)
+	(up-modify-goal temporary-goal16 c:+ 1)
+	(up-jump-direct g: camp-function-id)
+	(acknowledge-taunt my-player-number 165))
+(defrule
+	(taunt-detected my-player-number 166)
+=>
+	(set-goal temporary-goal settlement)
+	(set-goal temporary-goal2 tree-class)
+	(set-strategic-number sn-allow-adjacent-dropsites 1)
+	(up-get-rule-id temporary-goal16)
+	(up-modify-goal temporary-goal16 c:+ 1)
+	(up-jump-direct g: camp-function-id)
+	(acknowledge-taunt my-player-number 166))
+;=============================================================
+(defrule
+	(true)
+=>
+	(up-jump-rule 10))
+(defrule ; end neg jump
+	(true)
+=>
+	(up-full-reset-search)
+	(set-goal temporary-goal4 1)
+	(set-goal temporary-goal5 9))
+(defrule
+	(building-type-count town-center >= 1)
+=>
+	(up-modify-goal temporary-goal4 c:max 8)
+	(up-modify-goal temporary-goal4 s:max sn-dropsite-separation-distance)
+	(up-modify-goal temporary-goal4 g:min temporary-goal5))
+(defrule ; end neg jump
+	(true)
+=>
+	(up-reset-filters)
+	(up-set-target-point self-x)
+	(up-filter-distance g: temporary-goal4 g: temporary-goal5)
+;	(up-filter-status c: status-gather c: list-active)
+;	(up-find-resource g: temporary-goal2 c: 40)
+	(up-filter-include -1 -1 -1 on-mainland)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-resource g: temporary-goal2 c: 40)
+	(up-filter-status c: status-resource c: list-active)
+	(up-find-resource g: temporary-goal2 c: 40)
+	(up-clean-search search-remote object-data-distance search-order-desc)
+	(up-get-search-state local-total)
+	(up-modify-goal temporary-goal6 g:= remote-total)
+	(up-modify-goal temporary-goal6 c:- 1))
+(defrule ; end neg jump
+	(up-set-target-object search-remote g: temporary-goal6)
+=>
+	(up-get-point position-object temp-x))
+(defrule
+	(up-set-target-object search-remote g: temporary-goal6)
+	(goal temporary-goal2 tree-class)
+	(up-point-terrain temp-x != terrain-forest)
+	(up-point-terrain temp-x != terrain-forest-palm)
+	(up-point-terrain temp-x != terrain-forest-jungle)
+	(up-point-terrain temp-x != terrain-forest-bamboo)
+	(up-point-terrain temp-x != terrain-forest-pine)
+	(up-point-terrain temp-x != terrain-forest-oak)
+	(up-point-terrain temp-x != terrain-forest-snow)
+	(up-point-terrain temp-x != terrain-forest-dragon)
+	(up-point-terrain temp-x != terrain-forest-baobab)
+	(up-point-terrain temp-x != terrain-forest-acacia)
+	(up-point-terrain temp-x != terrain-forest-mangrove)
+	(up-point-terrain temp-x != terrain-forest-rainforest)
+	(up-point-terrain temp-x != terrain-forest-mediterranean)
+	(up-point-terrain temp-x != terrain-forest-bush)
+	(up-point-terrain temp-x != terrain-forest-reeds-shallows)
+	(up-point-terrain temp-x != terrain-forest-reeds-beach)
+	(up-point-terrain temp-x != terrain-forest-reeds)
+	(up-point-terrain temp-x != terrain-forest-autumn)
+	(up-point-terrain temp-x != terrain-forest-autumn-snow)
+	(up-point-terrain temp-x != terrain-forest-dead)
+	(up-point-terrain temp-x != terrain-forest-birch)
+	(up-point-terrain temp-x != terrain-forest-palm-grass)
+	(up-point-terrain temp-x != terrain-forest-lush-bamboo)
+	(up-point-terrain temp-x != terrain-forest-dry-south-american)
+=>
+	(up-remove-objects search-remote object-data-index g:== temporary-goal6))
+(defrule
+(not	(up-set-target-object search-remote g: temporary-goal6))
+	(up-compare-goal temporary-goal6 >= 1)
+=>
+	(up-modify-goal temporary-goal6 c:- 1)
+	(up-jump-rule -3))
+(defrule
+	(up-compare-goal remote-total < 40)
+	(up-compare-goal temporary-goal5 < 30)
+=>
+	(up-modify-goal temporary-goal5 c:+ 3)
+	(up-modify-goal temporary-goal5 c:min 30)
+	(up-jump-rule -5))
+(defrule
+	(up-set-target-object search-remote g: temporary-goal6)
+	(goal temporary-goal2 tree-class)
+=>
+	(up-get-point-distance self-x temp-x temporary-goal4)
+	(up-modify-goal temporary-goal5 s:= sn-lumber-camp-max-distance)
+	(up-modify-goal temporary-goal5 c:* 2)
+	(up-modify-goal temporary-goal4 g:min temporary-goal5)
+	(up-modify-goal temporary-goal4 c:+ 3); 2
+	(up-get-fact building-type-count-total lumber-camp temporary-goal5)
+	(up-modify-goal temporary-goal5 c:max 0)
+	(up-modify-goal temporary-goal5 c:min 10)
+	(up-modify-goal temporary-goal4 g:+ temporary-goal5)
+	(up-get-fact building-type-count-total mule-cart temporary-goal5)
+	(up-modify-goal temporary-goal5 c:max 0)
+	(up-modify-goal temporary-goal5 c:min 10)
+	(up-modify-goal temporary-goal4 g:+ temporary-goal5)
+	(up-get-fact building-type-count-total settlement temporary-goal5)
+	(up-modify-goal temporary-goal5 c:max 0)
+	(up-modify-goal temporary-goal5 c:min 10)
+	(up-modify-goal temporary-goal4 g:+ temporary-goal5)
+	(up-modify-goal temporary-goal4 s:max sn-dropsite-separation-distance)
+;	(up-chat-data-to-self "sn-lumber-camp-max-distance: %d" g: temporary-goal4)
+	(up-modify-sn sn-lumber-camp-max-distance g:max temporary-goal4))
+(defrule
+	(up-set-target-object search-remote g: temporary-goal6)
+(or	(goal temporary-goal2 gold-mine-class)
+	(goal temporary-goal2 stone-mine-class))
+=>
+	(up-get-point-distance self-x temp-x temporary-goal4)
+	(up-modify-goal temporary-goal4 c:+ 3); 4
+	(up-get-fact building-type-count-total mining-camp temporary-goal5)
+	(up-modify-goal temporary-goal5 c:max 0)
+	(up-modify-goal temporary-goal5 c:min 10)
+	(up-modify-goal temporary-goal4 g:+ temporary-goal5)
+	(up-get-fact building-type-count-total mule-cart temporary-goal5)
+	(up-modify-goal temporary-goal5 c:max 0)
+	(up-modify-goal temporary-goal5 c:min 10)
+	(up-modify-goal temporary-goal4 g:+ temporary-goal5)
+	(up-get-fact building-type-count-total settlement temporary-goal5)
+	(up-modify-goal temporary-goal5 c:max 0)
+	(up-modify-goal temporary-goal5 c:min 10)
+	(up-modify-goal temporary-goal4 g:+ temporary-goal5)
+	(up-modify-goal temporary-goal4 s:max sn-dropsite-separation-distance)
+;	(up-chat-data-to-self "sn-mining-camp-max-distance: %d" g: temporary-goal4)
+	(up-modify-sn sn-mining-camp-max-distance g:max temporary-goal4))
+(defrule
+	(true)
+=>
+	(up-jump-rule 22)); end jump
+(defrule
+	(up-compare-goal camp-function-id < 10000)
+=>
+	(up-jump-rule 85))
+(defrule
+	(true)
+=>
+	(up-get-rule-id camp-function-id)
+	(up-jump-rule 84)
+	(disable-self))
+(defrule
+	(false)
+	(goal temporary-goal mill)
+=>
+	(set-goal temporary-goal settlement))
+(defrule
+(or	(goal temporary-goal town-center)
+	(goal temporary-goal town-center-foundation))
+=>
+	(up-get-fact building-type-count-total town-center temporary-goal18)
+	(up-modify-goal temporary-goal18 c:+ 1)
+	(up-modify-goal construct-town-center g:max temporary-goal18))
+(defrule
+	(goal temporary-goal lumber-camp)
+=>
+	(up-get-fact building-type-count-total lumber-camp temporary-goal18)
+	(up-modify-goal temporary-goal18 c:+ 1)
+	(up-modify-goal construct-lumber-camp g:max temporary-goal18))
+(defrule
+	(goal temporary-goal mining-camp)
+=>
+	(up-get-fact building-type-count-total mining-camp temporary-goal18)
+	(up-modify-goal temporary-goal18 c:+ 1)
+	(up-modify-goal construct-mining-camp g:max temporary-goal18))
+(defrule
+	(goal temporary-goal mule-cart)
+=>
+	(up-get-fact building-type-count-total mule-cart temporary-goal18)
+	(up-modify-goal temporary-goal18 c:+ 1)
+	(up-modify-goal construct-mule-cart g:max temporary-goal18))
+(defrule
+	(goal temporary-goal settlement)
+=>
+	(up-get-fact building-type-count-total settlement temporary-goal18)
+	(up-modify-goal temporary-goal18 c:+ 1)
+	(up-modify-goal construct-settlement g:max temporary-goal18))
+(defrule
+	(goal temporary-goal mill)
+=>
+	(up-get-fact building-type-count-total mill temporary-goal18)
+	(up-modify-goal temporary-goal18 c:+ 1)
+	(up-modify-goal construct-mill g:max temporary-goal18))
+(defrule
+(or	(and	(up-compare-goal temporary-goal != town-center-foundation)
+		(not	(up-can-build 0 g: temporary-goal)))
+(or	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(not	(up-can-build 0 c: town-center)))
+	(up-pending-placement g: temporary-goal)))
+=>
+;	(up-chat-data-to-self "Can't construct: %d" g: temporary-goal)
+	(up-jump-rule 75)); to goal16
+(defrule
+	(true)
+=>
+	(set-goal execution-successful no)
+	(set-goal temporary-goal18 -1))
+(defrule
+	(up-compare-goal temporary-goal g:== temporary-goal2)
+	(strategic-number sn-allow-adjacent-dropsites == 1)
+	(up-compare-goal temp9-x >= 0)
+	(up-compare-goal temp9-y >= 0)
+	(up-compare-goal temp9-x g:< map-size)
+	(up-compare-goal temp9-y g:< map-size)
+=>
+	(set-goal temporary-goal18 1))
+(defrule
+(or	(goal temporary-goal2 mining-camp)
+	(and	(up-compare-goal temporary-goal2 <= 0)
+		(or	(and	(goal temporary-goal2 mule-cart)
+				(strategic-number sn-mule-cart-dropsite-placement == mining-camp))
+			(and	(goal temporary-goal2 settlement)
+				(strategic-number sn-preferred-settlement-placement == settlement-gold)))))
+	(up-gaia-type-count-total c: gold >= 1)
+=>
+	(set-goal temporary-goal2 gold-mine-class)
+	(up-jump-rule 6))
+(defrule
+(or	(goal temporary-goal2 mining-camp)
+	(and	(up-compare-goal temporary-goal2 <= 0)
+		(or	(and	(goal temporary-goal2 mule-cart)
+				(strategic-number sn-mule-cart-dropsite-placement == mining-camp))
+			(and	(goal temporary-goal2 settlement)
+				(strategic-number sn-preferred-settlement-placement == settlement-stone)))))
+	(up-gaia-type-count-total c: stone >= 1)
+=>
+	(set-goal temporary-goal2 stone-mine-class)
+	(up-jump-rule 5))
+(defrule
+(or	(goal temporary-goal2 mill)
+	(and	(goal temporary-goal mill)
+		(up-compare-goal temporary-goal2 <= 0)))
+	(up-gaia-type-count-total c: forage-bush-class >= 1)
+=>
+	(set-goal temporary-goal2 forage-bush-class)
+	(up-jump-rule 4))
+(defrule
+(or	(goal temporary-goal2 mill)
+(or	(and	(goal temporary-goal mill)
+		(goal temporary-goal2 1))
+(or	(and	(goal temporary-goal2 mule-cart)
+		(strategic-number sn-mule-cart-dropsite-placement == 0))
+	(and	(goal temporary-goal2 settlement)
+		(strategic-number sn-preferred-settlement-placement == 0)))))
+	(up-gaia-type-count-total c: deer-class >= 1)
+=>
+	(set-goal temporary-goal2 deer-class)
+	(up-jump-rule 3))
+(defrule
+(or	(goal temporary-goal2 mill)
+(or	(and	(goal temporary-goal mill)
+		(goal temporary-goal2 2))
+(or	(and	(goal temporary-goal2 mule-cart)
+		(strategic-number sn-mule-cart-dropsite-placement == 0))
+	(and	(goal temporary-goal2 settlement)
+		(strategic-number sn-preferred-settlement-placement == 0)))))
+	(up-gaia-type-count-total c: shore-fish-class >= 1)
+=>
+	(set-goal temporary-goal2 shore-fish-class)
+	(up-jump-rule 2))
+(defrule
+(or	(goal temporary-goal2 mill)
+	(and	(goal temporary-goal mill)
+		(and	(up-compare-goal temporary-goal2 >= 0)
+			(up-compare-goal temporary-goal2 <= 2))))
+=>
+	(set-goal temporary-goal2 forage-bush-class)
+	(up-jump-rule 1))
+(defrule
+	(up-compare-goal temporary-goal2 != gold-mine-class)
+	(up-compare-goal temporary-goal2 != stone-mine-class)
+	(up-compare-goal temporary-goal2 != tree-class)
+	(up-compare-goal temporary-goal2 != forage-bush-class)
+	(up-compare-goal temporary-goal2 != deer-class)
+	(up-compare-goal temporary-goal2 != shore-fish-class)
+=>
+	(set-goal temporary-goal2 tree-class)); end mini jumps only
+(defrule
+	(goal temporary-goal2 tree-class)
+	(up-gaia-type-count-total c: wood s:>= sn-required-forest-tiles)
+=>
+	(up-jump-rule -30))
+(defrule
+	(goal temporary-goal2 gold-mine-class)
+	(up-gaia-type-count-total c: gold >= 1)
+=>
+	(up-jump-rule -31))
+(defrule
+	(goal temporary-goal2 stone-mine-class)
+	(up-gaia-type-count-total c: stone >= 1)
+=>
+	(up-jump-rule -32)); end jump
+(defrule
+	(goal temporary-goal settlement)
+	(goal temporary-goal2 shore-fish-class)
+	(strategic-number sn-preferred-settlement-placement != settlement-fishing)
+=>
+	(set-strategic-number sn-preferred-settlement-placement settlement-fishing)
+	(up-modify-sn sn-camp-max-distance s:= sn-mill-max-distance)
+	(up-jump-rule 6))
+(defrule
+	(goal temporary-goal settlement)
+	(goal temporary-goal2 deer-class)
+	(strategic-number sn-preferred-settlement-placement != settlement-hunting)
+=>
+	(set-strategic-number sn-preferred-settlement-placement settlement-hunting)
+	(up-modify-sn sn-camp-max-distance s:= sn-mill-max-distance)
+	(up-jump-rule 5))
+(defrule
+	(goal temporary-goal settlement)
+	(goal temporary-goal2 forage-bush-class)
+	(strategic-number sn-preferred-settlement-placement != settlement-forage)
+=>
+	(set-strategic-number sn-preferred-settlement-placement settlement-forage)
+	(up-modify-sn sn-camp-max-distance s:= sn-mill-max-distance)
+	(up-jump-rule 4))
+(defrule
+	(goal temporary-goal settlement)
+	(goal temporary-goal2 tree-class)
+	(strategic-number sn-preferred-settlement-placement != settlement-wood)
+=>
+	(set-strategic-number sn-preferred-settlement-placement settlement-wood)
+	(up-modify-sn sn-camp-max-distance s:= sn-lumber-camp-max-distance)
+	(up-jump-rule 3))
+(defrule
+	(goal temporary-goal settlement)
+	(goal temporary-goal2 gold-mine-class)
+	(strategic-number sn-preferred-settlement-placement != settlement-gold)
+=>
+	(set-strategic-number sn-preferred-settlement-placement settlement-gold)
+	(up-modify-sn sn-camp-max-distance s:= sn-mining-camp-max-distance)
+	(up-jump-rule 2))
+(defrule
+	(goal temporary-goal settlement)
+	(goal temporary-goal2 stone-mine-class)
+	(strategic-number sn-preferred-settlement-placement != settlement-stone)
+=>
+	(set-strategic-number sn-preferred-settlement-placement settlement-stone)
+	(up-modify-sn sn-camp-max-distance s:= sn-mining-camp-max-distance)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal settlement)
+	(strategic-number sn-preferred-settlement-placement != settlement-default)
+=>
+	(set-strategic-number sn-preferred-settlement-placement settlement-default)
+	(up-modify-sn sn-camp-max-distance s:= sn-safe-town-size)
+	(up-modify-sn sn-camp-max-distance s:max sn-mill-max-distance)
+	(up-modify-sn sn-camp-max-distance s:max sn-lumber-camp-max-distance)
+	(up-modify-sn sn-camp-max-distance s:max sn-mining-camp-max-distance)); end jumps
+(defrule
+(or	(and	(up-compare-goal dead-villagers >= 2)
+		(and	(population g:< del-civ-pop)
+			(up-compare-goal custom-civ-pop-total g:< desired-civ-pop)))
+(or	(timer-triggered two-minutes)
+	(and	(up-compare-goal temporary-goal != lumber-camp)
+		(and	(up-compare-goal temporary-goal != mining-camp)
+			(and	(up-compare-goal temporary-goal != mule-cart)
+				(and	(up-compare-goal temporary-goal != settlement)
+					(and	(up-compare-goal temporary-goal != mill)
+						(up-compare-goal temporary-goal != town-center-foundation))))))))
+=>
+	(up-jump-rule 52)); to normal
+(defrule
+	(goal temporary-goal2 tree-class)
+(or	(up-gaia-type-count-total c: wood s:< sn-required-forest-tiles)
+	(strategic-number sn-lumber-camp-max-distance s:<= sn-dropsite-separation-distance))
+	(building-type-count-total town-center >= 1)
+=>
+	(up-jump-rule 51))
+(defrule
+(or	(goal temporary-goal2 gold-mine-class)
+	(goal temporary-goal2 stone-mine-class))
+(or	(strategic-number sn-mining-camp-max-distance s:<= sn-dropsite-separation-distance)
+(or	(and	(goal temporary-goal2 gold-mine-class)
+		(up-gaia-type-count-total c: gold <= 1))
+	(and	(goal temporary-goal2 stone-mine-class)
+		(up-gaia-type-count-total c: stone <= 1))))
+	(building-type-count-total town-center >= 1)
+=>
+	(up-jump-rule 50))
+(defrule
+(or	(goal temporary-goal2 forage-bush-class)
+	(goal temporary-goal2 deer-class))
+(or	(up-gaia-type-count-total g: temporary-goal2 <= 1)
+	(strategic-number sn-mill-max-distance s:<= sn-dropsite-separation-distance))
+	(building-type-count-total town-center >= 1)
+=>
+	(up-jump-rule 49)); to normal
+(defrule
+	(building-type-count-total lumber-camp <= 0)
+	(building-type-count-total mule-cart <= 0)
+	(building-type-count-total settlement <= 0)
+(or	(goal temporary-goal lumber-camp)
+(or	(goal temporary-goal mule-cart)
+	(goal temporary-goal settlement)))
+	(goal temporary-goal2 tree-class)
+=>
+	(set-strategic-number sn-allow-adjacent-dropsites 1)
+	(up-modify-goal temporary-goal3 s:= sn-lumber-camp-max-distance)
+	(set-goal temporary-goal7 5)
+	(set-goal temporary-goal8 2)
+	(up-jump-rule 4))
+(defrule
+	(goal temporary-goal2 tree-class)
+=>
+	(set-strategic-number sn-allow-adjacent-dropsites 1)
+	(up-modify-goal temporary-goal3 s:= sn-lumber-camp-max-distance)
+	(set-goal temporary-goal7 6)
+	(set-goal temporary-goal8 2)
+	(up-jump-rule 3))
+(defrule
+(or	(goal temporary-goal2 gold-mine-class)
+	(goal temporary-goal2 stone-mine-class))
+=>
+	(up-modify-goal temporary-goal3 s:= sn-mining-camp-max-distance)
+	(set-goal temporary-goal7 2)
+	(set-goal temporary-goal8 2)
+	(up-jump-rule 2))
+(defrule
+	(goal temporary-goal2 forage-bush-class)
+=>
+	(up-modify-goal temporary-goal3 s:= sn-mill-max-distance)
+	(set-goal temporary-goal7 2)
+	(set-goal temporary-goal8 2)
+	(up-jump-rule 1))
+(defrule
+(or	(goal temporary-goal2 deer-class)
+(or	(goal temporary-goal2 shore-fish-class)
+	(goal temporary-goal2 ocean-fish-class)))
+=>
+	(set-strategic-number sn-allow-adjacent-dropsites 1)
+	(up-modify-goal temporary-goal3 s:= sn-mill-max-distance)
+	(up-modify-goal temporary-goal3 c:max 25)
+	(set-goal temporary-goal7 1)
+	(set-goal temporary-goal8 4)); end mini jumps
+(defrule
+	(goal temporary-goal settlement)
+=>
+	(up-modify-goal temporary-goal8 c:max 3)
+	(up-modify-sn sn-dropsite-separation-distance c:max 5)); min-dropsite-separation-distance
+(defrule
+	(goal temporary-goal town-center-foundation)
+=>
+	(set-strategic-number sn-allow-adjacent-dropsites 1)
+	(up-modify-goal temporary-goal3 c:+ 2); 1
+	(set-goal temporary-goal7 2);
+	(up-modify-goal temporary-goal8 c:+ 3); 2
+	(up-modify-goal temporary-goal8 c:max 4))
+(defrule
+	(goal temporary-goal town-center-foundation)
+	(up-compare-goal temporary-goal2 != tree-class)
+	(up-compare-goal temporary-goal2 != shore-fish-class)
+=>
+	(up-modify-goal temporary-goal7 c:min 1))
+(defrule
+	(goal temporary-goal mule-cart)
+	(goal temporary-goal2 deer-class)
+=>
+	(up-modify-goal temporary-goal3 c:max 25)
+	(up-modify-goal temporary-goal3 s:max sn-safe-town-size)
+	(up-modify-goal temporary-goal3 s:max sn-mill-max-distance)
+	(up-modify-goal temporary-goal3 s:max sn-lumber-camp-max-distance)
+	(up-modify-goal temporary-goal3 s:max sn-mining-camp-max-distance)); end mini jumps
+(defrule
+	(true)
+=>
+	(up-modify-goal temporary-goal14 s:= sn-allow-adjacent-dropsites)
+	(up-modify-goal temporary-goal14 c:- 1)
+	(up-modify-goal temporary-goal14 c:* -1)
+	(up-modify-goal temporary-goal14 c:min 1)
+	(up-modify-goal temporary-goal14 c:max 0)
+	(up-modify-goal temporary-goal8 g:+ temporary-goal14))
+(defrule
+	(goal temporary-goal18 1)
+=>
+	(up-jump-rule 13))
+(defrule
+	(true)
+=>
+	(up-modify-goal temp9-x c:min -1)
+	(up-modify-goal temp9-y c:min -1)
+	(up-copy-point temp8-x temp9-x)
+	(up-copy-point temp7-x temp9-x)
+	(up-copy-point temp6-x temp9-x)
+	(up-copy-point temp5-x temp9-x)
+	(up-copy-point temp4-x temp9-x)
+	(up-copy-point temp3-x temp9-x)
+	(up-copy-point temp2-x temp9-x)
+	(set-goal temporary-goal14 temp9-x)
+	(set-goal temporary-goal15 temp9-y)
+	(up-full-reset-search)
+	(set-goal temporary-goal4 0)
+	(set-goal temporary-goal5 1)
+	(set-goal temporary-goal20 0))
+(defrule
+	(building-type-count town-center >= 1)
+=>
+	(up-modify-goal temporary-goal20 g:= temporary-goal8)
+	(up-modify-goal temporary-goal20 c:- 1)
+	(up-modify-goal temporary-goal20 c:max 1)
+	(up-modify-goal temporary-goal20 s:min sn-dropsite-separation-distance)
+	(up-modify-goal temporary-goal4 c:max 8)
+	(up-modify-goal temporary-goal4 s:max sn-dropsite-separation-distance)
+	(up-modify-goal temporary-goal5 g:= temporary-goal4)
+	(up-modify-goal temporary-goal5 c:+ 1)
+	(up-modify-goal temporary-goal4 g:min temporary-goal3)
+	(up-modify-goal temporary-goal5 g:min temporary-goal3))
+(defrule ; end neg jump
+	(up-compare-goal temporary-goal2 != shore-fish-class)
+	(up-compare-goal temporary-goal2 != ocean-fish-class)
+=>
+	(up-reset-filters)
+	(up-set-target-point self-x)
+	(up-filter-distance g: temporary-goal4 g: temporary-goal5)
+	(up-filter-include -1 -1 -1 on-mainland)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-resource g: temporary-goal2 c: 40)
+	(up-filter-status c: status-resource c: list-active)
+	(up-find-resource g: temporary-goal2 c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal temporary-goal6 g:= remote-total)
+	(up-modify-goal temporary-goal6 c:- 1))
+(defrule ; Split for performance reasons.
+(or	(up-compare-goal temporary-goal2 == shore-fish-class)
+	(up-compare-goal temporary-goal2 == ocean-fish-class))
+=>
+	(up-reset-filters)
+	(up-set-target-point self-x)
+	(up-filter-distance g: temporary-goal4 g: temporary-goal5)
+	(up-filter-status c: status-gather c: list-active)
+	(up-find-resource g: temporary-goal2 c: 40)
+	(up-get-search-state local-total)
+	(up-modify-goal temporary-goal6 g:= remote-total)
+	(up-modify-goal temporary-goal6 c:- 1))
+(defrule ; end neg jump
+	(up-compare-goal temp9-x >= 0)
+	(goal temporary-goal2 tree-class);
+=>
+	(up-set-target-point temp9-x)
+	(up-remove-objects search-remote object-data-distance g:<= temporary-goal20)
+	(up-set-target-point temp8-x)
+	(up-remove-objects search-remote object-data-distance g:<= temporary-goal20)
+	(up-set-target-point temp7-x)
+	(up-remove-objects search-remote object-data-distance g:<= temporary-goal20)
+	(up-set-target-point temp6-x)
+	(up-remove-objects search-remote object-data-distance g:<= temporary-goal20)
+	(up-set-target-point temp5-x)
+	(up-remove-objects search-remote object-data-distance g:<= temporary-goal20)
+	(up-set-target-point temp4-x)
+	(up-remove-objects search-remote object-data-distance g:<= temporary-goal20)
+	(up-set-target-point temp3-x)
+	(up-remove-objects search-remote object-data-distance g:<= temporary-goal20)
+	(up-set-target-point temp2-x)
+	(up-remove-objects search-remote object-data-distance g:<= temporary-goal20)
+	(up-clean-search search-remote -1 search-order-asc)
+	(up-get-search-state local-total)
+	(up-modify-goal temporary-goal6 g:= remote-total)
+	(up-modify-goal temporary-goal6 c:- 1))
+(defrule ; end neg jump
+	(up-set-target-object search-remote g: temporary-goal6)
+=>
+	(up-get-point position-object temp-x))
+(defrule
+	(up-set-target-object search-remote g: temporary-goal6)
+	(goal temporary-goal2 tree-class)
+	(up-point-terrain temp-x != terrain-forest)
+	(up-point-terrain temp-x != terrain-forest-palm)
+	(up-point-terrain temp-x != terrain-forest-jungle)
+	(up-point-terrain temp-x != terrain-forest-bamboo)
+	(up-point-terrain temp-x != terrain-forest-pine)
+	(up-point-terrain temp-x != terrain-forest-oak)
+	(up-point-terrain temp-x != terrain-forest-snow)
+	(up-point-terrain temp-x != terrain-forest-dragon)
+	(up-point-terrain temp-x != terrain-forest-baobab)
+	(up-point-terrain temp-x != terrain-forest-acacia)
+	(up-point-terrain temp-x != terrain-forest-mangrove)
+	(up-point-terrain temp-x != terrain-forest-rainforest)
+	(up-point-terrain temp-x != terrain-forest-mediterranean)
+	(up-point-terrain temp-x != terrain-forest-bush)
+	(up-point-terrain temp-x != terrain-forest-reeds-shallows)
+	(up-point-terrain temp-x != terrain-forest-reeds-beach)
+	(up-point-terrain temp-x != terrain-forest-reeds)
+	(up-point-terrain temp-x != terrain-forest-autumn)
+	(up-point-terrain temp-x != terrain-forest-autumn-snow)
+	(up-point-terrain temp-x != terrain-forest-dead)
+	(up-point-terrain temp-x != terrain-forest-birch)
+	(up-point-terrain temp-x != terrain-forest-palm-grass)
+	(up-point-terrain temp-x != terrain-forest-lush-bamboo)
+	(up-point-terrain temp-x != terrain-forest-dry-south-american)
+=>
+	(set-goal local-total 1)
+	(up-jump-rule 3))
+(defrule
+	(up-set-target-object search-remote g: temporary-goal6)
+=>
+	(up-set-target-point temp-x)
+	(up-reset-filters)
+	(up-reset-search 1 1 0 0)
+	(up-filter-include -1 -1 -1 on-mainland)
+	(up-filter-distance c: -1 s: sn-dropsite-separation-distance)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-local g: temporary-goal c: 1)
+	(up-find-local c: town-center c: 1)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-local g: temporary-goal c: 1)
+	(up-find-status-local c: town-center-foundation c: 1)
+	(up-get-search-state local-total))
+(defrule
+	(up-set-target-object search-remote g: temporary-goal6)
+(or	(up-compare-goal local-total >= 1)
+(or	(up-compare-goal temporary-goal14 > temp2-x)
+	(up-compare-goal temporary-goal15 > temp2-y)))
+=>
+	(up-jump-rule 1))
+(defrule
+	(up-set-target-object search-remote g: temporary-goal6)
+	(up-compare-goal temporary-goal14 <= temp2-x)
+	(up-compare-goal temporary-goal15 <= temp2-y)
+=>
+	(up-set-indirect-goal g: temporary-goal14 g: temp-x)
+	(up-set-indirect-goal g: temporary-goal15 g: temp-y)
+	(up-modify-goal temporary-goal14 c:+ 2)
+	(up-modify-goal temporary-goal15 c:+ 2)
+	(up-modify-goal temporary-goal6 c:- 1)
+	(up-jump-rule -6)); end jump
+(defrule
+	(up-compare-goal temporary-goal6 >= 1)
+	(up-compare-goal local-total >= 1)
+	(up-compare-goal temporary-goal14 < temp2-x)
+	(up-compare-goal temporary-goal15 < temp2-y)
+=>
+	(up-remove-objects search-remote object-data-index g:== temporary-goal6)
+	(up-modify-goal temporary-goal6 c:- 1)
+	(up-jump-rule -6))
+(defrule
+	(up-compare-goal remote-total < 40)
+	(up-compare-goal temporary-goal4 g:< temporary-goal3)
+	(up-compare-goal temporary-goal5 g:< temporary-goal3)
+	(up-compare-goal temp2-x <= -1)
+=>
+	(up-modify-goal temporary-goal4 c:+ 1)
+	(up-modify-goal temporary-goal5 c:+ 1)
+	(up-jump-rule -10))
+(defrule
+	(game-time < 24); 20
+	(building-type-count-total town-center <= 0)
+	(up-compare-goal temp9-x < 0)
+=>
+	(up-copy-point temp9-x self-x)); end jump
+(defrule
+	(up-compare-goal temp9-x < 0)
+=>
+	(up-jump-rule 24)); to normal
+(defrule
+	(true)
+=>
+;	(up-send-flare temp9-x)
+;	(up-send-flare temp8-x)
+;	(up-send-flare temp7-x)
+;	(up-send-flare temp6-x)
+;	(up-send-flare temp5-x)
+;	(up-send-flare temp4-x)
+;	(up-send-flare temp3-x)
+;	(up-send-flare temp2-x)
+	(set-goal temporary-goal14 temp9-x)
+	(set-goal temporary-goal15 temp9-y)
+	(up-copy-point temp10-x null-x)
+	(up-full-reset-search)
+	(set-goal temporary-goal9 0)
+	(set-goal temporary-goal10 0)
+	(set-goal temporary-goal11 1)
+	(set-goal temporary-goal17 -1)
+	(set-goal temporary-goal20 0))
+(defrule ; end neg jump
+	(true)
+=>
+	(up-modify-goal temporary-goal12 g:= temporary-goal11)
+	(up-modify-goal temporary-goal12 c:* -1)
+	(up-modify-goal temporary-goal13 g:= temporary-goal11)
+	(up-modify-goal temporary-goal13 c:* -1)
+	(up-get-indirect-goal g: temporary-goal14 temp10-x)
+	(up-get-indirect-goal g: temporary-goal15 temp10-y)
+	(up-copy-point temp-x null-x)
+	(up-modify-goal temp10-x g:+ temporary-goal11)
+	(up-modify-goal temp10-y g:+ temporary-goal11))
+(defrule
+	(up-compare-goal temp10-x g:== temp10-y)
+	(up-compare-goal temp10-x g:< temporary-goal11)
+=>
+	(up-jump-rule 16))
+(defrule ; end neg jump
+	(up-compare-goal temp10-x >= 0)
+	(up-compare-goal temp10-y >= 0)
+	(up-compare-goal temp10-x g:< map-size)
+	(up-compare-goal temp10-y g:< map-size)
+	(up-point-explored temp10-x != explored-no)
+(or	(up-point-zone temp10-x g:== main-zone)
+	(up-compare-goal temporary-goal2 == shore-fish-class))
+(or	(up-can-build-line 0 temp-x g: temporary-goal)
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(up-can-build-line 0 temp-x c: town-center)))
+	(up-point-contains temp10-x g: temporary-goal2)
+=>
+	(up-modify-goal temporary-goal20 c:+ 1)
+;	(up-chat-data-to-self "remote-last: %d." g: temporary-goal20)
+;	(up-send-flare temp10-x)
+)
+(defrule
+(or	(goal temporary-goal town-center-foundation)
+	(goal temporary-goal settlement))
+	(up-compare-goal temp10-x >= 0)
+	(up-compare-goal temp10-y >= 0)
+	(up-compare-goal temp10-x g:< map-size)
+	(up-compare-goal temp10-y g:< map-size)
+	(up-point-explored temp10-x != explored-no)
+(or	(up-point-zone temp10-x g:== main-zone)
+	(up-compare-goal temporary-goal2 == shore-fish-class))
+	(up-can-build-line 0 temp-x c: town-center)
+(not	(up-point-contains temp10-x g: temporary-goal2)); hmm
+;(or	(up-point-contains temp10-x c: farm-class)
+(or	(up-point-contains temp10-x c: tree-class)
+(or	(up-point-contains temp10-x c: gold-mine-class)
+(or	(up-point-contains temp10-x c: stone-mine-class)
+(or	(up-point-contains temp10-x c: forage-bush-class)
+(or	(up-point-contains temp10-x c: shore-fish-class)
+(or	(up-point-contains temp10-x c: ocean-fish-class)
+	(up-point-contains temp10-x c: deer-class)))))));)
+=>
+	(up-modify-goal temporary-goal20 c:+ 1)
+;	(up-chat-data-to-self "remote-last extra: %d." g: temporary-goal20)
+;	(up-send-flare temp10-x)
+)
+(defrule
+	(goal temporary-goal mill)
+	(up-compare-goal temp10-x >= 0)
+	(up-compare-goal temp10-y >= 0)
+	(up-compare-goal temp10-x g:< map-size)
+	(up-compare-goal temp10-y g:< map-size)
+	(up-point-explored temp10-x != explored-no)
+(or	(up-point-zone temp10-x g:== main-zone)
+	(up-compare-goal temporary-goal2 == shore-fish-class))
+	(up-can-build-line 0 temp-x c: mill)
+(not	(up-point-contains temp10-x g: temporary-goal2)); hmm
+;(or	(up-point-contains temp10-x c: farm-class)
+(or	(up-point-contains temp10-x c: forage-bush-class)
+(or	(up-point-contains temp10-x c: shore-fish-class)
+(or	(up-point-contains temp10-x c: ocean-fish-class)
+	(up-point-contains temp10-x c: deer-class))));)
+=>
+	(up-modify-goal temporary-goal20 c:+ 1)
+;	(up-chat-data-to-self "remote-last extra2: %d." g: temporary-goal20)
+;	(up-send-flare temp10-x)
+)
+(defrule
+	(goal temporary-goal mining-camp)
+	(up-compare-goal temp10-x >= 0)
+	(up-compare-goal temp10-y >= 0)
+	(up-compare-goal temp10-x g:< map-size)
+	(up-compare-goal temp10-y g:< map-size)
+	(up-point-explored temp10-x != explored-no)
+(or	(up-point-zone temp10-x g:== main-zone)
+	(up-compare-goal temporary-goal2 == shore-fish-class))
+	(up-can-build-line 0 temp-x c: mining-camp)
+(not	(up-point-contains temp10-x g: temporary-goal2)); hmm
+(or	(up-point-contains temp10-x c: gold-mine-class)
+	(up-point-contains temp10-x c: stone-mine-class))
+=>
+	(up-modify-goal temporary-goal20 c:+ 1)
+;	(up-chat-data-to-self "remote-last extra3: %d." g: temporary-goal20)
+;	(up-send-flare temp10-x)
+)
+(defrule
+(or	(up-point-zone temp10-x g:== main-zone)
+	(up-compare-goal temporary-goal2 == shore-fish-class))
+(or	(up-can-build-line 0 temp10-x g: temporary-goal)
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(up-can-build-line 0 temp10-x c: town-center)))
+(or	(and	(up-compare-goal temporary-goal != town-center-foundation)
+		(not	(up-can-build-line 0 temp-x g: temporary-goal)))
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(not	(up-can-build-line 0 temp-x c: town-center))))
+=>
+	(up-set-target-point temp10-x)
+	(up-full-reset-search)
+	(up-filter-include -1 -1 -1 on-mainland)
+	(up-modify-goal temporary-goal4 s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number 1))
+(defrule ; end neg jump
+	(up-compare-goal gl-treaty-time < 270)
+	(player-in-game focus-player)
+(not	(stance-toward focus-player ally))
+(or	(up-point-zone temp10-x g:== main-zone)
+	(up-compare-goal temporary-goal2 == shore-fish-class))
+(or	(up-can-build-line 0 temp10-x g: temporary-goal)
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(up-can-build-line 0 temp10-x c: town-center)))
+(or	(and	(up-compare-goal temporary-goal != town-center-foundation)
+		(not	(up-can-build-line 0 temp-x g: temporary-goal)))
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(not	(up-can-build-line 0 temp-x c: town-center))))
+=>
+;	(up-filter-distance c: -1 c: 6)
+;	(up-find-remote c: wall-class c: 1)
+;	(up-find-remote c: gate-class c: 1)
+	(up-filter-distance c: -1 c: 15); 12
+	(up-find-remote c: all-units-class c: 1))
+(defrule
+(not	(up-set-target-object search-remote c: 0))
+	(player-in-game focus-player)
+	(stance-toward focus-player ally)
+(or	(up-point-zone temp10-x g:== main-zone)
+	(up-compare-goal temporary-goal2 == shore-fish-class))
+(or	(up-can-build-line 0 temp10-x g: temporary-goal)
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(up-can-build-line 0 temp10-x c: town-center)))
+(or	(and	(up-compare-goal temporary-goal != town-center-foundation)
+		(not	(up-can-build-line 0 temp-x g: temporary-goal)))
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(not	(up-can-build-line 0 temp-x c: town-center))))
+=>
+	(up-filter-distance c: -1 c: 5)
+	(up-find-remote c: wall-class c: 1)
+;	(up-find-remote c: gate-class c: 1)
+	(up-filter-distance c: -1 s: sn-dropsite-separation-distance)
+	(up-find-remote g: temporary-goal c: 1)
+	(up-find-remote c: town-center c: 1)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-remote g: temporary-goal c: 1)
+	(up-find-status-remote c: town-center-foundation c: 1))
+(defrule
+	(strategic-number sn-dropsite-separation-distance < 8)
+(not	(up-set-target-object search-remote c: 0))
+	(player-in-game focus-player)
+(or	(up-point-zone temp10-x g:== main-zone)
+	(up-compare-goal temporary-goal2 == shore-fish-class))
+	(up-compare-goal temporary-goal == town-center-foundation)
+	(up-can-build-line 0 temp10-x c: town-center)
+(not	(up-can-build-line 0 temp-x c: town-center))
+=>
+	(up-filter-distance c: -1 c: 8)
+	(up-filter-status c: status-ready c: list-active)
+	(up-find-remote c: town-center c: 1)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-remote c: town-center-foundation c: 1))
+(defrule
+(not	(up-set-target-object search-remote c: 0))
+	(strategic-number sn-focus-player-number < 8)
+(or	(up-point-zone temp10-x g:== main-zone)
+	(up-compare-goal temporary-goal2 == shore-fish-class))
+(or	(up-can-build-line 0 temp10-x g: temporary-goal)
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(up-can-build-line 0 temp10-x c: town-center)))
+(or	(and	(up-compare-goal temporary-goal != town-center-foundation)
+		(not	(up-can-build-line 0 temp-x g: temporary-goal)))
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(not	(up-can-build-line 0 temp-x c: town-center))))
+=>
+	(up-modify-sn sn-focus-player-number c:+ 1)
+	(up-reset-filters)
+	(up-filter-include -1 -1 -1 on-mainland)
+	(up-jump-rule -4))
+(defrule
+(or	(up-point-zone temp10-x g:== main-zone)
+	(up-compare-goal temporary-goal2 == shore-fish-class))
+(or	(up-can-build-line 0 temp10-x g: temporary-goal)
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(up-can-build-line 0 temp10-x c: town-center)))
+(or	(and	(up-compare-goal temporary-goal != town-center-foundation)
+		(not	(up-can-build-line 0 temp-x g: temporary-goal)))
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(not	(up-can-build-line 0 temp-x c: town-center))))
+=>
+	(up-modify-sn sn-focus-player-number g:= temporary-goal4))
+(defrule ; end neg jump
+(not	(up-set-target-object search-remote c: 0))
+(or	(up-point-zone temp10-x g:== main-zone)
+	(up-compare-goal temporary-goal2 == shore-fish-class))
+(or	(up-can-build-line 0 temp10-x g: temporary-goal)
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(up-can-build-line 0 temp10-x c: town-center)))
+(or	(and	(up-compare-goal temporary-goal != town-center-foundation)
+		(not	(up-can-build-line 0 temp-x g: temporary-goal)))
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(not	(up-can-build-line 0 temp-x c: town-center))))
+=>
+	(up-copy-point temp-x temp10-x)
+	(up-modify-goal temporary-goal11 g:= temporary-goal8)
+	(up-modify-goal temporary-goal12 g:= temporary-goal11)
+	(up-modify-goal temporary-goal12 c:* -1)
+	(up-modify-goal temporary-goal13 g:= temporary-goal12)
+	(up-modify-goal temp10-x g:+ temporary-goal11)
+	(up-modify-goal temp10-y g:+ temporary-goal11)
+	(up-get-point-distance temp-x self-x temporary-goal10)
+	(up-get-point-distance temp-x target-x temporary-goal3)); ->
+(defrule ; continued
+(not	(up-set-target-object search-remote c: 0))
+(or	(up-point-zone temp10-x g:== main-zone)
+	(up-compare-goal temporary-goal2 == shore-fish-class))
+(or	(up-can-build-line 0 temp10-x g: temporary-goal)
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(up-can-build-line 0 temp10-x c: town-center)))
+(or	(and	(up-compare-goal temporary-goal != town-center-foundation)
+		(not	(up-can-build-line 0 temp-x g: temporary-goal)))
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(not	(up-can-build-line 0 temp-x c: town-center))))
+=>
+	(up-modify-goal temporary-goal3 g:- target-distance)
+	(up-modify-goal temporary-goal3 c:max -1)
+	(up-modify-goal temporary-goal3 c:min 1)
+	(up-modify-goal temporary-goal20 s:= sn-dropsite-separation-distance)
+	(up-modify-goal temporary-goal20 c:max 8)
+	(up-modify-goal temporary-goal10 g:- temporary-goal20)
+	(up-modify-goal temporary-goal10 c:max 0)
+	(set-goal temporary-goal20 0)
+	(up-jump-rule -12))
+(defrule
+	(up-compare-goal temporary-goal12 g:< temporary-goal11); <
+=>
+	(up-modify-goal temp10-x c:- 1)
+	(up-modify-goal temporary-goal12 c:+ 1)
+;	(up-build-line temp10-x temp10-x c: palisade-wall)
+	(up-jump-rule -13))
+(defrule
+	(up-compare-goal temporary-goal13 g:< temporary-goal11); <
+=>
+	(up-modify-goal temp10-x g:+ temporary-goal11)
+	(up-modify-goal temp10-x g:+ temporary-goal11)
+;	(up-modify-goal temp10-x c:+ 1); <
+	(up-modify-goal temporary-goal12 g:= temporary-goal11)
+	(up-modify-goal temporary-goal12 c:* -1)
+	(up-modify-goal temp10-y c:- 1)
+	(up-modify-goal temporary-goal13 c:+ 1)
+;	(up-build-line temp10-x temp10-x c: palisade-wall)
+	(up-jump-rule -14))
+(defrule
+;(not	(up-can-build-line 0 temp-x g: temporary-goal))
+	(up-compare-goal temporary-goal11 g:< temporary-goal8)
+=>
+	(up-modify-goal temporary-goal11 c:+ 1)
+	(up-jump-rule -17))
+(defrule
+(or	(up-can-build-line 0 temp-x g: temporary-goal)
+	(and	(up-compare-goal temporary-goal == town-center-foundation)
+		(up-can-build-line 0 temp10-x c: town-center)))
+	(up-compare-goal temporary-goal20 g:>= temporary-goal7)
+	(up-modify-goal temporary-goal19 g:= temporary-goal20)
+	(up-modify-goal temporary-goal6 c:= 2)
+	(up-modify-goal temporary-goal6 s:+ sn-current-age)
+(or	(up-compare-goal temporary-goal == town-center-foundation)
+	(up-modify-goal temporary-goal6 g:+ temporary-goal3))
+(or	(up-compare-goal temporary-goal2 != tree-class)
+	(and	(up-modify-goal temporary-goal10 g:z/ temporary-goal6)
+		(up-modify-goal temporary-goal19 g:- temporary-goal10)))
+	(up-compare-goal temporary-goal20 g:> temporary-goal9)
+	(up-compare-goal temporary-goal19 g:>= temporary-goal9)
+=>
+	(up-modify-goal temporary-goal9 g:= temporary-goal19)
+;	(up-chat-data-to-self "remote-total: %d." g: temporary-goal9)
+;	(up-send-flare temp-x)
+	(up-copy-point temporary-goal17 temp-x)); end jump
+(defrule
+	(up-compare-goal temporary-goal14 < temp2-x)
+	(up-compare-goal temporary-goal15 < temp2-y)
+=>
+	(set-goal temporary-goal20 0)
+	(set-goal temporary-goal11 1)
+	(up-modify-goal temporary-goal14 c:+ 2)
+	(up-modify-goal temporary-goal15 c:+ 2)
+	(up-copy-point temp-x null-x)
+	(up-modify-goal temporary-goal12 g:= temporary-goal11)
+	(up-modify-goal temporary-goal12 c:* -1)
+	(up-modify-goal temporary-goal13 g:= temporary-goal12)
+	(up-jump-rule -19))
+(defrule
+	(goal temporary-goal town-center-foundation)
+	(goal temporary-goal2 tree-class)
+	(can-afford-building town-center-foundation)
+(not	(up-can-build-line 0 temporary-goal17 c: town-center))
+	(building-type-count-total town-center >= 1)
+=>
+	(set-goal temporary-goal2 gold-mine-class)
+	(up-jump-direct g: camp-function-id))
+(defrule
+	(goal temporary-goal town-center-foundation)
+	(goal temporary-goal2 gold-mine-class)
+	(can-afford-building town-center-foundation)
+(not	(up-can-build-line 0 temporary-goal17 c: town-center))
+	(building-type-count-total town-center >= 1)
+=>
+	(set-goal temporary-goal2 stone-mine-class)
+	(up-jump-direct g: camp-function-id))
+(defrule
+(or	(up-can-build-line 0 temporary-goal17 g: temporary-goal)
+	(and	(or	(goal temporary-goal town-center-foundation)
+				(goal temporary-goal town-center))
+		(and	(can-afford-building town-center-foundation)
+			(up-can-build-line 0 temporary-goal17 c: town-center))))
+=>
+	(up-full-reset-search)
+	(up-find-local c: villager-class c: 1))
+(defrule
+(or	(up-can-build-line 0 temporary-goal17 g: temporary-goal)
+	(and	(or	(goal temporary-goal town-center-foundation)
+				(goal temporary-goal town-center))
+		(and	(can-afford-building town-center-foundation)
+			(up-can-build-line 0 temporary-goal17 c: town-center))))
+	(up-set-target-object search-local c: 0)
+	(up-path-distance temporary-goal17 1 != 65535)
+=>
+;	(up-chat-data-to-self "Special placement: %d." g: temporary-goal9)
+	(set-goal execution-successful yes)
+;	(up-send-flare temporary-goal17)
+	(up-assign-builders g: temporary-goal c: -1)
+	(up-build-line temporary-goal17 temporary-goal17 g: temporary-goal)
+	(up-jump-rule 3)); end jump
+(defrule
+(or	(goal temporary-goal town-center-foundation)
+	(goal temporary-goal town-center))
+	(can-afford-building town-center-foundation)
+	(up-can-build 0 c: town-center)
+(or	(game-time >= 24); 20
+	(building-type-count-total town-center >= 1))
+	(up-compare-goal temporary-goal18 != 1)
+=>
+;	(up-chat-data-to-self "Normal TC placement: %d." g: temporary-goal9)
+	(set-goal execution-successful yes)
+	(up-assign-builders c: town-center-foundation c: 1)
+	(up-build place-normal 0 c: town-center)
+	(up-jump-rule 2))
+(defrule
+	(up-compare-goal temporary-goal != town-center-foundation)
+	(up-compare-goal temporary-goal != town-center)
+	(up-can-build 0 g: temporary-goal)
+(or	(game-time >= 24); 20
+	(building-type-count-total town-center >= 1))
+	(up-compare-goal temporary-goal18 != 1)
+=>
+;	(up-chat-data-to-self "Normal placement: %d." g: temporary-goal)
+	(set-goal execution-successful yes)
+	(up-assign-builders g: temporary-goal c: 1)
+	(up-build place-normal 0 g: temporary-goal)
+	(up-jump-rule 1))
+(defrule
+	(false)
+=>
+	(up-chat-data-to-self "Placement failed: %d" g: temporary-goal)); end jump
+;=============================================================
+(defrule
+	(true)
+=>
+	(up-jump-direct g: temporary-goal16)); end jump
+;=============================================================
+(defrule
+	(up-pending-objects g: temporary-goal >= 1)
+=>
+	(up-full-reset-search)
+	(up-modify-goal temporary-goal15 s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-remote g: temporary-goal c: 10)
+	(up-remove-objects search-remote object-data-tasks-count >= 1)
+	(up-modify-sn sn-focus-player-number g:= temporary-goal15)
+	(up-get-search-state local-total)
+;	(up-chat-data-to-self "remote-total: %d." g: remote-total)
+)
+;=============================================================
+; Fortified train sites
+;=============================================================
+(defrule
+	(up-compare-goal fortified-train-function-id < 10000)
+=>
+	(up-jump-rule 24))
+(defrule
+	(true)
+=>
+	(up-get-rule-id fortified-train-function-id)
+	(up-jump-rule 23)
+	(disable-self))
+(defrule
+	(true)
+=>
+	(set-goal execution-successful no))
+(defrule
+(or	(not	(up-can-build 0 g: temporary-goal))
+	(and	(up-compare-goal temporary-goal != castle)
+		(and	(up-compare-goal temporary-goal != krepost)
+			(up-compare-goal temporary-goal != donjon))))
+=>
+	(up-jump-rule 17)); to planning
+(defrule
+	(up-compare-const koth-game == 1)
+	(goal under-attack no)
+	(unit-type-count-total 213 <= 3)
+	(unit-type-count-total 225 <= 3)
+	(up-can-build 0 g: temporary-goal)
+=>
+	(set-goal execution-successful yes)
+	(set-strategic-number sn-placement-to-center 1)
+	(up-set-placement-data my-player-number -1 c: 15)
+	(set-strategic-number sn-placement-zone-size 10)
+	(up-build place-control 0 g: temporary-goal)
+	(up-jump-rule 19))
+(defrule
+	(up-pending-objects c: castle <= 0)
+	(unit-type-count trade-cart >= 12)
+	(building-type-count-total castle >= 2); 3
+	(building-type-count-total castle < 12); 8
+	(goal under-attack no)
+	(unit-type-count-total 213 <= 2)
+	(unit-type-count-total 225 <= 2)
+(or	(up-compare-flag power-unit-flag != f-unique)
+	(building-type-count-total castle >= 6))
+	(up-compare-const koth-game != 1)
+	(up-can-build 0 g: temporary-goal)
+=>
+	(set-goal execution-successful yes)
+	(up-set-placement-data my-player-number trade-cart c: 2)
+	(set-strategic-number sn-placement-zone-size 4)
+	(up-build place-control 0 g: temporary-goal)
+	(up-jump-rule 18))
+(defrule
+	(up-pending-objects g: temporary-goal <= 0)
+	(building-type-count-total castle >= 3)
+(or	(up-compare-flag power-unit-flag != f-unique)
+(or	(building-type-count-total donjon >= 4)
+(or	(building-type-count-total krepost >= 4)
+	(building-type-count-total castle >= 4))))
+	(building-type-count-total castle < 12)
+	(players-building-count target-player >= 1)
+	(population g:>= max-civ-pop)
+	(strategic-number sn-military-superiority >= 3)
+	(up-compare-goal dead-villagers <= 1)
+	(goal attacking yes)
+	(goal under-attack no)
+	(up-compare-const koth-game != 1)
+	(up-can-build 0 g: temporary-goal)
+=>
+	(set-goal execution-successful yes)
+	(set-strategic-number sn-placement-zone-size 12); 10
+	(up-build place-forward 0 g: temporary-goal)
+	(up-jump-rule 17))
+(defrule
+(or	(building-type-count-total castle >= 3)
+(or	(goal under-attack yes)
+	(and	(up-compare-goal dead-villagers >= 2)
+		(and	(up-compare-goal custom-civ-pop g:< desired-civ-pop)
+			(population g:< max-civ-pop)))))
+=>
+	(up-jump-rule 10))
+(defrule
+	(true)
+=>
+	(up-copy-point temp-x self-x)
+	(up-copy-point temp2-x temp-x)
+	(up-modify-goal temporary-goal2 s:= sn-safe-town-size)
+	(up-modify-goal temporary-goal2 c:- 12); 10
+	(up-get-fact building-type-count-total castle temporary-goal5)
+	(up-get-fact building-type-count-total krepost temporary-goal6)
+	(up-modify-goal temporary-goal5 g:+ temporary-goal6)
+	(up-get-fact building-type-count-total donjon temporary-goal6)
+	(up-modify-goal temporary-goal5 g:+ temporary-goal6)
+	(up-modify-goal temporary-goal3 g:= temporary-goal5)
+	(up-modify-goal temporary-goal3 c:min 4)
+	(up-modify-goal temporary-goal2 g:+ temporary-goal3)
+	(up-modify-goal temporary-goal2 c:max 8); 10
+	(up-lerp-tiles temp-x target-x g: temporary-goal2)
+	(up-copy-point temp3-x temp-x)
+	(set-goal temporary-goal2 0)
+	(set-goal temporary-goal3 0)
+	(set-goal temporary-goal4 7); 8
+	(up-modify-goal temporary-goal4 g:+ temporary-goal5)
+	(up-modify-goal temporary-goal4 g:+ attacking)
+	(up-modify-goal temporary-goal4 c:min 12); 10
+	(set-goal temporary-goal5 134217727))
+(defrule
+	(true)
+=>
+	(set-goal temporary-goal6 -1)
+	(up-modify-goal temporary-goal7 g:= temporary-goal4)
+	(up-modify-goal temporary-goal7 c:* 2)
+	(up-modify-goal temporary-goal8 g:= temporary-goal7)
+	(up-modify-goal temporary-goal8 c:* -1)
+	(up-cross-tiles temp-x self-x g: temporary-goal8)
+	(up-modify-goal temp-x g:- temporary-goal4)
+	(up-modify-goal temp-y g:- temporary-goal4))
+(defrule ; end neg jump
+	(up-point-explored temp-x == explored-no)
+	(strategic-number sn-unexplored-construction == 0)
+=>
+	(up-jump-rule 2))
+(defrule
+	(up-can-build-line 0 temp-x g: temporary-goal)
+	(up-point-elevation temp-x g:> temporary-goal6)
+=>
+	(up-copy-point temp2-x temp-x)
+	(up-get-point-elevation temp-x temporary-goal6)
+	(up-get-point-distance temp-x self-x temporary-goal5)
+	(up-jump-rule 1))
+(defrule
+	(up-can-build-line 0 temp-x g: temporary-goal)
+	(up-point-elevation temp-x g:== temporary-goal6)
+(or	(and	(up-point-terrain temp2-x == terrain-desert-cracked)
+		(up-point-terrain temp-x != terrain-desert-cracked))
+	(and	(up-point-distance temp-x self-x g:< temporary-goal5)
+		(or	(building-type-count-total castle <= 0)
+			(or	(goal under-attack yes)
+				(or	(up-compare-goal dead-villagers >= 1)
+					(strategic-number sn-military-superiority <= -2))))))
+=>
+	(up-copy-point temp2-x temp-x)
+	(up-get-point-elevation temp-x temporary-goal6)
+	(up-get-point-distance temp-x self-x temporary-goal5)); end mini-jump
+(defrule
+	(up-compare-goal temporary-goal2 g:< temporary-goal7)
+	(up-compare-goal temporary-goal6 < 16)
+=>
+	(up-modify-goal temp-x c:+ 1)
+	(up-modify-goal temporary-goal2 c:+ 1)
+;	(up-build-line temp-x temp-x c: palisade-wall)
+	(up-jump-rule -4))
+(defrule
+	(up-compare-goal temporary-goal3 g:< temporary-goal7)
+	(up-compare-goal temporary-goal6 < 16)
+=>
+	(up-modify-goal temp-x g:- temporary-goal2)
+	(set-goal temporary-goal2 0)
+	(up-modify-goal temp-y c:+ 1)
+	(up-modify-goal temporary-goal3 c:+ 1)
+	(up-jump-rule -5))
+(defrule
+	(up-compare-goal temporary-goal8 g:< temporary-goal7)
+	(up-compare-goal temporary-goal6 < 16)
+=>
+	(up-copy-point temp-x temp3-x)
+	(up-modify-goal temporary-goal8 g:+ temporary-goal7)
+	(up-cross-tiles temp-x self-x g: temporary-goal8)
+	(set-goal temporary-goal2 0)
+	(set-goal temporary-goal3 0)
+	(up-modify-goal temp-x g:- temporary-goal4)
+	(up-modify-goal temp-y g:- temporary-goal4)
+	(up-jump-rule -6))
+(defrule
+	(up-can-build-line 0 temp2-x g: temporary-goal)
+=>
+	(up-full-reset-search)
+	(up-find-local c: villager-class c: 1))
+(defrule
+	(up-can-build-line 0 temp2-x g: temporary-goal)
+	(up-set-target-object search-local c: 0)
+	(up-path-distance temp2-x 1 != 65535)
+=>
+	(set-goal execution-successful yes)
+	(up-chat-data-to-self "Building fortification: %d." g: temporary-goal6)
+	(up-assign-builders g: temporary-goal c: -1)
+	(up-build-line temp2-x temp2-x g: temporary-goal)
+	(up-jump-rule 6)); end jump
+(defrule
+	(building-type-count-total castle < 12)
+	(goal under-attack no)
+	(unit-type-count-total 213 <= 2)
+	(unit-type-count-total 225 <= 2)
+	(up-compare-const koth-game != 1)
+	(up-can-build 0 g: temporary-goal)
+=>
+	(set-goal execution-successful yes)
+	(up-set-placement-data my-player-number -1 c: 10); 10
+	(set-strategic-number sn-placement-zone-size 12); 10
+	(up-build place-control 0 g: temporary-goal)
+	(up-jump-rule 5))
+(defrule
+(or	(goal under-attack yes)
+(or	(unit-type-count-total 213 >= 3)
+	(unit-type-count-total 225 >= 3)))
+	(up-can-build 0 g: temporary-goal)
+=>
+	(set-goal execution-successful yes)
+;	(set-strategic-number sn-placement-to-center 1);test
+	(up-set-placement-data my-player-number -1 c: -4); -8
+	(set-strategic-number sn-placement-zone-size 12); 10
+	(up-build place-control 0 g: temporary-goal)
+	(up-jump-rule 4))
+(defrule
+	(up-can-build 0 g: temporary-goal)
+=>
+	(set-goal execution-successful yes)
+	(up-set-placement-data my-player-number -1 c: 0)
+	(set-strategic-number sn-placement-zone-size 14)
+	(up-build place-control 0 g: temporary-goal)
+	(up-jump-rule 3)); end jump
+(defrule
+	(goal execution-successful no)
+	(goal temporary-goal castle)
+=>
+	(up-get-fact building-type-count-total castle temporary-goal)
+	(up-modify-goal temporary-goal c:+ 1)
+	(up-modify-goal construct-castle g:max temporary-goal)
+	(up-jump-rule 2))
+(defrule
+	(goal execution-successful no)
+	(goal temporary-goal krepost)
+=>
+	(up-get-fact building-type-count-total krepost temporary-goal)
+	(up-modify-goal temporary-goal c:+ 1)
+	(up-modify-goal construct-krepost g:max temporary-goal)
+	(up-jump-rule 1))
+(defrule
+	(goal execution-successful no)
+	(goal temporary-goal donjon)
+=>
+	(up-get-fact building-type-count-total donjon temporary-goal)
+	(up-modify-goal temporary-goal c:+ 1)
+	(up-modify-goal construct-donjon g:max temporary-goal)); end jumps
+;=============================================================
+(defrule
+	(true)
+=>
+	(up-jump-direct g: temporary-goal16)); end big jump
+;=============================================================

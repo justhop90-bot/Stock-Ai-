@@ -1,0 +1,231 @@
+(defrule
+	(up-pending-objects c: lumber-camp <= 0)
+	(up-pending-objects c: mining-camp <= 0)
+	(up-pending-objects c: mule-cart <= 0)
+	(up-pending-objects c: settlement <= 0)
+	(up-pending-objects c: mill <= 0)
+	(up-pending-objects c: town-center <= 0)
+=>
+	(up-jump-rule 9))
+(defrule
+	(true)
+=>
+	(set-goal temporary-goal -1)
+	(up-full-reset-search)
+	(up-modify-goal temporary-goal15 s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-remote c: town-center-foundation c: 6)
+	(up-find-status-remote c: lumber-camp c: 6)
+	(up-find-status-remote c: mule-cart c: 6)
+	(up-find-status-remote c: mining-camp c: 6)
+	(up-find-status-remote c: settlement c: 6)
+	(up-find-status-remote c: mill c: 6)
+	(up-remove-objects search-remote object-data-tasks-count >= 1)
+	(up-remove-objects search-remote object-data-under-attack == 1)
+	(up-modify-sn sn-focus-player-number g:= temporary-goal15))
+(defrule
+	(up-set-target-object search-remote c: 0)
+(or	(up-object-data object-data-type == lumber-camp)
+(or	(and	(up-object-data object-data-type == mule-cart)
+		(strategic-number sn-mule-cart-dropsite-placement == lumber-camp))
+	(and	(up-object-data object-data-type == settlement)
+		(strategic-number sn-preferred-settlement-placement == settlement-wood))))
+=>
+	(set-goal temporary-goal wood)
+	(up-jump-rule 3))
+(defrule
+	(up-set-target-object search-remote c: 0)
+(or	(up-object-data object-data-type == mining-camp)
+(or	(and	(up-object-data object-data-type == mule-cart)
+		(strategic-number sn-mule-cart-dropsite-placement == mining-camp))
+	(and	(up-object-data object-data-type == settlement)
+		(or	(strategic-number sn-preferred-settlement-placement == settlement-gold)
+			(strategic-number sn-preferred-settlement-placement == settlement-stone)))))
+=>
+	(set-goal temporary-goal gold)
+	(up-jump-rule 2))
+(defrule
+	(up-set-target-object search-remote c: 0)
+(or	(up-object-data object-data-type == mill)
+	(and	(up-object-data object-data-type == settlement)
+		(or	(strategic-number sn-preferred-settlement-placement == settlement-hunting)
+			(or	(strategic-number sn-preferred-settlement-placement == settlement-fishing)
+				(strategic-number sn-preferred-settlement-placement == settlement-forage)))))
+=>
+	(set-goal temporary-goal food)
+	(up-jump-rule 1))
+(defrule
+	(up-set-target-object search-remote c: 0)
+(or	(up-object-data object-data-type == town-center)
+(or	(up-object-data object-data-type == town-center-foundation)
+(or	(up-object-data object-data-type == settlement)
+	(and	(up-object-data object-data-type == mule-cart)
+		(strategic-number sn-mule-cart-dropsite-placement == 0)))))
+=>
+	(set-goal temporary-goal -1)); end mini jumps
+(defrule
+	(up-set-target-object search-remote c: 0)
+	(up-compare-goal temporary-goal != -1)
+=>
+	(up-get-point position-object temp-x)
+	(up-set-target-point temp-x)
+	(up-reset-filters)
+	(up-filter-distance c: -1 c: 24)
+	(up-filter-exclude -1 actionid-build orderid-build -1)
+	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-gather-type g:!= temporary-goal)
+	(up-remove-objects search-local object-data-tasks-count >= 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-action == actionid-attack)
+	(up-jump-rule 1))
+(defrule
+	(up-set-target-object search-remote c: 0)
+	(goal temporary-goal -1)
+=>
+	(up-get-point position-object temp-x)
+	(up-set-target-point temp-x)
+	(up-reset-filters)
+	(up-filter-distance c: -1 c: 24)
+	(up-filter-exclude -1 actionid-build orderid-build -1)
+	(up-find-local c: villager-class c: 40)
+	(up-remove-objects search-local object-data-tasks-count >= 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-action == actionid-attack)); end mini-jump
+(defrule
+(or	(goal temporary-goal -1)
+(or	(not	(up-set-target-object search-local c: 0))
+(or	(goal under-attack yes)
+(or	(unit-type-count 213 >= 1)
+	(unit-type-count 225 >= 1)))))
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-get-object-data object-data-type temporary-goal)
+	(up-assign-builders g: temporary-goal c: 1)
+	(up-jump-rule 1))
+(defrule
+	(up-set-target-object search-local c: 0)
+	(up-set-target-object search-remote c: 0)
+=>
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-remove-objects search-local object-data-index >= 1)
+	(up-target-objects 1 action-default -1 -1)); end jumps
+(defrule
+(or	(up-compare-goal under-attack != no)
+(or	(unit-type-count 213 >= 1)
+(or	(unit-type-count 225 >= 1)
+(or	(and	(game-time >= 30)
+		(and	(unit-type-count villager <= 5)
+			(and	(up-pending-objects c: town-center <= 1)
+				(up-pending-objects c: feitoria <= 1))))
+	(unit-type-count villager-builder g:>= villager-count)))))
+=>
+	(up-jump-rule 5))
+(defrule
+	(true)
+=>
+	(up-modify-goal temporary-goal s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-remote c: town-center-foundation c: 8)
+	(up-find-status-remote c: feitoria g: feitoria-cap)
+	(up-remove-objects search-remote object-data-tasks-count >= 4)
+	(up-remove-objects search-remote object-data-under-attack == 1)
+	(up-clean-search search-remote object-data-tasks-count search-order-asc)
+	(set-goal temporary-goal2 0))
+(defrule ; end neg jump
+	(up-set-target-object search-remote g: temporary-goal2)
+=>
+	(up-get-point position-object temp6-x)
+	(up-get-object-data object-data-map-zone-id temporary-goal3)
+	(up-get-object-data object-data-tasks-count temporary-goal4)
+	(up-reset-search 1 1 0 0)
+	(up-reset-filters)
+	(up-filter-exclude -1 actionid-build orderid-build -1)
+	(up-set-target-point temp6-x)
+	(up-filter-distance c: -1 c: 24)
+	(up-find-local c: villager-class g: villager-count)
+	(up-remove-objects search-local object-data-map-zone-id g:!= temporary-goal3)
+	(up-remove-objects search-local object-data-tasks-count >= 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-action == actionid-attack))
+(defrule
+	(up-set-target-object search-local c: 0)
+	(up-set-target-object search-remote g: temporary-goal2)
+=>
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(set-goal temporary-goal3 4)
+	(up-modify-goal temporary-goal3 g:- temporary-goal4)
+	(up-remove-objects search-local object-data-index g:>= temporary-goal3)
+	(up-target-objects 1 action-default -1 -1))
+(defrule
+	(up-set-target-object search-remote g: temporary-goal2)
+=>
+	(up-modify-goal temporary-goal2 c:+ 1)
+	(up-jump-rule -3))
+(defrule
+	(true)
+=>
+	(up-modify-sn sn-focus-player-number g:= temporary-goal)); end jump
+(defrule
+	(up-pending-objects c: castle <= 0)
+	(up-pending-objects c: krepost <= 0)
+=>
+	(up-jump-rule 6))
+(defrule
+	(true)
+=>
+	(up-modify-goal temporary-goal s:= sn-focus-player-number)
+	(set-strategic-number sn-focus-player-number my-player-number)
+	(up-full-reset-search)
+	(up-filter-status c: status-pending c: list-active)
+	(up-find-status-remote c: castle c: 8)
+	(up-find-status-remote c: krepost c: 8)
+	(up-remove-objects search-remote object-data-tasks-count g:>= castle-builders)
+	(up-remove-objects search-remote object-data-under-attack == 1)
+	(up-clean-search search-remote object-data-tasks-count search-order-asc)
+	(set-goal temporary-goal2 0))
+(defrule ; end neg jump
+	(up-set-target-object search-remote g: temporary-goal2)
+=>
+	(up-get-point position-object temp6-x)
+	(up-get-object-data object-data-map-zone-id temporary-goal3)
+	(up-get-object-data object-data-tasks-count temporary-goal4)
+	(up-reset-search 1 1 0 0)
+	(up-reset-filters)
+	(up-filter-exclude -1 actionid-build orderid-build -1)
+	(up-set-target-point temp6-x)
+	(up-filter-distance c: -1 c: 24)
+	(up-find-local c: villager-class g: villager-count)
+	(up-remove-objects search-local object-data-map-zone-id g:!= temporary-goal3)
+	(up-remove-objects search-local object-data-tasks-count >= 1)
+	(up-remove-objects search-local object-data-action == actionid-enter)
+	(up-remove-objects search-local object-data-action == actionid-attack))
+(defrule
+	(up-set-target-object search-local c: 0)
+	(up-set-target-object search-remote g: temporary-goal2)
+=>
+	(up-clean-search search-local object-data-distance search-order-asc)
+	(up-modify-goal temporary-goal3 g:= castle-builders)
+	(up-modify-goal temporary-goal3 g:- temporary-goal4)
+	(up-remove-objects search-local object-data-index g:>= temporary-goal3)
+	(up-target-objects 1 action-default -1 -1))
+(defrule
+	(up-set-target-object search-remote g: temporary-goal2)
+=>
+	(up-modify-goal temporary-goal2 c:+ 1)
+	(up-jump-rule -3))
+(defrule
+(or	(not	(up-set-target-object search-local c: 0))
+(or	(goal under-attack yes)
+(or	(unit-type-count 213 >= 1)
+	(unit-type-count 225 >= 1))))
+	(up-set-target-object search-remote g: temporary-goal2)
+=>
+	(up-get-object-data object-data-type temporary-goal)
+	(up-assign-builders g: temporary-goal g: castle-builders))
+(defrule
+	(true)
+=>
+	(up-modify-sn sn-focus-player-number g:= temporary-goal)); end jump

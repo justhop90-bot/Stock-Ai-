@@ -1,0 +1,1158 @@
+(defrule
+	(up-compare-goal affinity-function-id < 10000)
+=>
+	(up-jump-rule 136))
+(defrule
+	(true)
+=>
+	(up-get-rule-id affinity-function-id)
+	(up-jump-rule 135)
+	(disable-self))
+(defrule
+	(goal temporary-goal besar)
+(or	(up-compare-goal temporary-goal2 == kecil)
+	(up-compare-goal temporary-goal2 == relic-war))
+=>
+	(up-modify-goal current-affinity c:= 200)
+	(up-jump-rule 2))
+(defrule
+	(goal temporary-goal besar)
+	(game-time < 30)
+=>
+	(up-modify-goal current-affinity c:= 100)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal besar)
+	(up-compare-goal current-affinity != 1)
+=>
+	(up-modify-goal current-affinity c:= 1)); end mini jumps
+(defrule
+	(goal temporary-goal besar)
+	(up-compare-goal temporary-goal2 == relic-war)
+(or	(civ-selected lithuanians)
+(or	(up-compare-goal sighted-relics >= 8)
+(or	(up-compare-const relic-food >= 1)
+	(up-compare-const relic-gold >= 31))))
+=>
+	(up-modify-goal current-affinity c:+ 100)
+	(up-jump-rule 2))
+(defrule
+	(goal temporary-goal besar)
+	(goal temporary-goal2 kecil)
+(or	(goal under-attack yes)
+(or	(up-compare-const infinite-resources == yes)
+	(up-compare-const sd-game == yes)))
+=>
+	(up-modify-goal current-affinity c:- 1000)
+	(up-jump-rule 2))
+(defrule
+	(goal temporary-goal besar)
+	(goal temporary-goal2 kecil)
+(or	(up-compare-const michi-style == yes)
+(or	(game-type == wonder-race)
+(or	(and	(up-compare-goal number-enemies <= 0)
+		(or	(up-compare-goal gl-treaty-time <= -1)
+			(up-compare-goal gl-treaty-time >= 1201)))
+	(and	(goal super-pocket yes)
+		(and	(up-compare-goal target-distance >= 144)
+			(and	(or	(up-compare-goal wall-strength >= 900)
+						(up-compare-goal map-type >= type-islands))
+				(and	(goal under-attack no)
+					(up-compare-goal dead-villagers <= 0))))))))
+=>
+	(up-modify-goal current-affinity c:+ 1000)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal besar)
+	(goal temporary-goal2 kecil)
+	(up-compare-goal wall-strength >= 1080)
+(or	(goal player-position pocket)
+	(up-compare-goal target-distance >= 126))
+=>
+	(up-modify-goal current-affinity c:+ 100)); end mini jump
+(defrule
+	(goal temporary-goal sling)
+	(up-compare-const sling-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= sling-affinity))
+(defrule
+	(goal temporary-goal f-sling)
+	(up-compare-flag strategy-exited-flag == f-sling)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal temporary-goal drush)
+	(up-compare-const drush-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= drush-affinity))
+(defrule
+	(goal temporary-goal f-drush)
+	(up-compare-flag strategy-exited-flag == f-drush)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal temporary-goal maa-opener)
+	(up-compare-const maa-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= maa-affinity))
+(defrule
+	(goal temporary-goal maa-opener)
+	(up-compare-flag strategy-exited-flag == 32768)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+(or	(goal temporary-goal drush)
+	(goal temporary-goal maa-opener))
+(or	(up-compare-flag micro-flag == f-scrush-micro); hmm
+(or	(current-age >= feudal-age);
+(or	(and	(up-compare-goal forage-count < 6)
+		(and	(or	(strategic-number sn-maximum-hunt-drop-distance >= 14)
+					(strategic-number sn-maximum-hunt-drop-distance <= -1))
+			(and	(up-compare-goal current-livestock-food < 350)
+				(up-compare-goal total-boars < 2))))
+	(military-population <= 0))))
+=>
+	(up-modify-goal current-affinity c:- 101)
+	(up-jump-rule 2))
+(defrule
+	(goal temporary-goal drush)
+(or	(up-compare-flag starting-dropsite-flag == f-dock)
+(or	(up-compare-goal pond-fishing >= 2)
+(or	(goal player-position pocket)
+(or	(up-compare-goal target-distance >= 60)
+(or	(up-compare-goal focus-mpop >= 2)
+(or	(players-civ target-player chinese)
+(or	(players-civ every-enemy chinese)
+(or	(players-civ target-player gothic)
+	(players-civ every-enemy gothic)))))))))
+=>
+	(up-modify-goal current-affinity c:- 100)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal drush)
+(or	(and	(up-compare-goal target-distance < 36)
+		(players-building-count any-enemy >= 1))
+(or	(up-compare-goal total-livestock-food >= 900)
+(or	(up-compare-goal total-boars >= 3)
+(or	(and	(dropsite-min-distance deer-hunting <= 13)
+		(dropsite-min-distance deer-hunting >= 0))
+	(up-compare-goal forage-count >= 12)))))
+=>
+	(up-modify-goal current-affinity c:+ 99)); end jumps
+(defrule
+	(goal sk-var yes)
+	(goal temporary-goal r-flush)
+	(up-compare-const sk-var-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= sk-var-affinity)
+	(up-jump-rule 1))
+(defrule
+	(goal sk-var no)
+	(goal temporary-goal r-flush)
+	(up-compare-const r-flush-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= r-flush-affinity)); end mini jump
+(defrule
+	(goal temporary-goal r-flush)
+	(up-compare-flag strategy-exited-flag == f-r-flush)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal sk-var yes)
+	(goal temporary-goal r-flush)
+	(up-compare-const ELITE-SKIRMISHER-AVAILABLE == no)
+=>
+	(up-modify-goal current-affinity c:- 20))
+(defrule
+	(goal sk-var no)
+	(goal temporary-goal r-flush)
+	(up-compare-const CROSSBOWMAN-AVAILABLE == no)
+=>
+	(up-modify-goal current-affinity c:- 20))
+(defrule
+	(goal sk-var yes)
+	(goal temporary-goal r-flush)
+(or	(up-compare-const a-rush-affinity <= 99)
+(or	(players-building-type-count target-player archery-range >= 1);
+(or	(strategic-number sn-ranged >= 2);
+	(and	(up-compare-sn sn-current-age g:< enemy-age)
+		(and	(players-civilian-population target-player <= 23)
+			(building-type-count-total mining-camp <= 0))))))
+=>
+	(up-modify-goal current-affinity c:+ 10))
+(defrule
+(or	(goal temporary-goal drush); doubling down
+	(goal temporary-goal maa-opener))
+	(up-compare-goal target-distance >= 75)
+=>
+	(up-modify-goal current-affinity c:- 10))
+(defrule
+	(goal temporary-goal maa-opener)
+(or	(up-compare-goal enemy-strategy2 == klew)
+(or	(strategic-number sn-shock-infantry >= 2)
+(or	(up-compare-goal target-distance < 42)
+(or	(up-compare-goal total-livestock-food >= 900)
+(or	(up-compare-goal total-boars >= 3)
+(or	(and	(dropsite-min-distance deer-hunting <= 13)
+		(dropsite-min-distance deer-hunting >= 0))
+	(up-compare-goal forage-count >= 10)))))))
+=>
+	(up-modify-goal current-affinity c:+ 10))
+(defrule
+	(goal temporary-goal s-flush)
+	(up-compare-const s-flush-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= s-flush-affinity))
+(defrule
+	(goal temporary-goal s-flush)
+	(up-compare-flag strategy-exited-flag == f-s-flush)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal temporary-goal s-flush)
+(or	(strategic-number sn-current-age >= fcastlea)
+(or	(and	(strategic-number sn-current-age >= feudal)
+		(and	(game-time >= 48)
+			(and	(current-age-time >= 32)
+				(building-type-count-total stable <= 0))))
+(or	(and	(strategic-number sn-current-age <= dfeudal)
+		(and	(unit-type-count-total villager >= 24)
+			(or	(unit-type-count-total villager >= 25)
+				(up-research-status c: feudal-age >= research-pending))))
+	(and	(military-population <= 0)
+		(unit-type-count 449 g:>= essential-soldiercount)))))
+=>
+	(up-modify-goal current-affinity c:- 500))
+(defrule
+	(goal temporary-goal s-flush)
+(or	(up-compare-flag micro-flag == f-drush-micro); hmm
+(or	(and	(players-civ target-player armenians)
+		(players-military-population target-player >= 2))
+(or	(and	(players-civ target-player gurjaras)
+		(players-military-population target-player >= 1))
+(or	(strategic-number sn-camels >= 1)
+(or	(strategic-number sn-spears >= 1)
+(or	(and	(up-compare-goal forage-count < 6)
+		(and	(or	(strategic-number sn-maximum-hunt-drop-distance >= 14)
+					(strategic-number sn-maximum-hunt-drop-distance <= -1))
+			(and	(up-compare-goal current-livestock-food < 350)
+				(up-compare-goal total-boars < 2))))
+	(military-population <= 0)))))))
+=>
+	(up-modify-goal current-affinity c:- 101))
+(defrule
+	(goal temporary-goal krush)
+	(up-compare-const krush-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= krush-affinity))
+(defrule
+	(goal temporary-goal krush)
+	(up-research-status c: ri-szlachta-privileges >= research-pending)
+=>
+	(up-modify-goal current-affinity c:+ 50))
+(defrule
+	(goal temporary-goal krush)
+	(up-compare-flag strategy-exited-flag == f-krush)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal temporary-goal steppe-rush)
+	(up-compare-const steppe-rush-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= steppe-rush-affinity))
+(defrule
+	(goal temporary-goal steppe-rush)
+	(up-compare-flag strategy-exited-flag == 65536)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal temporary-goal chonkers)
+	(up-compare-const chonker-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= chonker-affinity))
+(defrule
+	(goal temporary-goal chonkers)
+	(up-compare-flag strategy-exited-flag == f-chonkers)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+(or	(goal temporary-goal s-flush)
+(or	(goal temporary-goal krush)
+(or	(goal temporary-goal steppe-rush)
+	(goal temporary-goal chonkers))))
+(or	(strategic-number sn-spears >= 12)
+	(and	(goal temporary-goal s-flush)
+		(strategic-number sn-spears >= 4)))
+=>
+	(up-modify-goal current-affinity c:- 50))
+(defrule
+(or	(goal temporary-goal s-flush)
+(or	(goal temporary-goal krush)
+(or	(and	(goal temporary-goal castledrop)
+		(up-compare-const uu-type == cavalry-uu))
+(or	(goal temporary-goal steppe-rush)
+	(goal temporary-goal chonkers)))))
+	(up-research-status c: ri-stirrups >= research-pending)
+=>
+	(up-modify-goal current-affinity c:+ 50))
+(defrule
+	(goal temporary-goal a-rush)
+	(up-compare-const a-rush-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= a-rush-affinity))
+(defrule
+	(goal temporary-goal a-rush)
+	(unit-type-count-total archer-line >= 5)
+=>
+	(up-modify-goal current-affinity c:+ 25))
+(defrule
+	(goal temporary-goal a-rush)
+	(up-compare-flag strategy-exited-flag == f-a-rush)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal temporary-goal ca-rush)
+	(up-compare-const ca-rush-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= ca-rush-affinity))
+(defrule
+	(goal temporary-goal ca-rush)
+	(up-compare-flag strategy-exited-flag == f-ca-rush)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal temporary-goal ea-rush)
+	(up-compare-const ea-rush-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= ea-rush-affinity))
+(defrule
+	(goal temporary-goal ea-rush)
+	(up-compare-flag strategy-exited-flag == f-ea-rush)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+(or	(goal temporary-goal a-rush)
+(or	(goal temporary-goal ca-rush)
+	(goal temporary-goal ea-rush)))
+(or	(and	(goal player-position flank)
+		(players-civ any-enemy persian))
+(or	(strategic-number sn-husks >= 3)
+(or	(strategic-number sn-skirms >= 12)
+(or	(strategic-number sn-shock-infantry >= 12)
+	(strategic-number sn-siege >= 6)))))
+=>
+	(up-modify-goal current-affinity c:- 50))
+(defrule
+	(goal temporary-goal klew)
+	(up-compare-const klew-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= klew-affinity))
+(defrule
+	(goal temporary-goal klew)
+	(up-compare-flag strategy-exited-flag == f-klew)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal temporary-goal syl-rush)
+	(up-compare-const syl-rush-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= syl-rush-affinity))
+(defrule
+	(goal temporary-goal syl-rush)
+(not	(unit-available champi-line)); needs more work
+=>
+	(up-modify-goal current-affinity c:- 50))
+(defrule
+	(goal temporary-goal syl-rush)
+	(up-compare-flag strategy-exited-flag == 131072)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+(or	(goal temporary-goal klew)
+	(goal temporary-goal syl-rush))
+(or	(and	(strategic-number sn-infantry >= 10)
+		(goal temporary-goal klew))
+(or	(and	(strategic-number sn-archers >= 12)
+		(goal temporary-goal syl-rush))
+(or	(players-unit-type-count focus-player slinger >= 8)
+	(players-unit-type-count focus-player hand-cannoneer >= 8))))
+=>
+	(up-modify-goal current-affinity c:- 50))
+(defrule
+	(goal temporary-goal castledrop)
+	(up-compare-const castledrop-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= castledrop-affinity))
+(defrule
+	(goal temporary-goal castledrop)
+	(up-compare-flag strategy-exited-flag == f-castledrop)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal temporary-goal castledrop)
+	(civ-selected italian)
+(or	(players-civ every-enemy aztec)
+(or	(players-civ every-enemy incan)
+(or	(players-civ every-enemy mayan)
+(or	(players-civ every-enemy muisca)
+	(players-civ every-enemy tupi)))))
+=>
+	(up-modify-goal current-affinity c:- 30))
+(defrule
+	(goal temporary-goal castledrop)
+(or	(and	(up-compare-const uu-type == infantry-uu)
+		(and	(players-civ any-ally khitans)
+			(not	(civ-selected khitans))))
+	(and	(players-civ any-ally tupi)
+		(nor	(civ-selected tupi)
+			(or	(civ-selected hun)
+				(population-headroom <= 0)))))
+=>
+	(up-modify-goal current-affinity c:+ 10))
+(defrule
+	(goal temporary-goal castledrop)
+(or	(up-compare-const ffa-game == yes)
+(or	(up-compare-goal total-stone-amount >= castle-stone)
+(or	(building-type-count-total castle >= 1)
+	(up-compare-flag power-unit-flag == f-unique))))
+=>
+	(up-modify-goal current-affinity c:+ 100)
+	(up-jump-rule 2))
+(defrule
+	(goal temporary-goal castledrop)
+(or	(up-compare-goal wall-strength >= 900)
+	(and	(up-compare-goal military-choice != kecil)
+		(and	(up-compare-goal strategy != stonewall)
+			(goal super-pocket yes))))
+=>
+	(up-modify-goal current-affinity c:+ 75)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal castledrop)
+	(and	(up-compare-goal nomad-start >= 1)
+		(and	(up-gaia-type-count c: stone >= 1)
+			(and	(dropsite-min-distance stone s:<= sn-safe-town-size)
+				(dropsite-min-distance stone >= 0))))
+=>
+	(up-modify-goal current-affinity c:+ 25)); end jumps
+(defrule
+	(goal temporary-goal stonewall)
+	(up-compare-const stonewall-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= stonewall-affinity))
+(defrule
+	(goal temporary-goal stonewall)
+	(up-compare-flag strategy-exited-flag == f-stonewall)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal temporary-goal stonewall)
+(or	(players-unit-type-count target-player militiaman-line >= 6)
+(or	(strategic-number sn-infantry >= 12)
+(or	(players-unit-type-count focus-player slinger >= 12)
+(or	(players-unit-type-count focus-player hand-cannoneer >= 12)
+(or	(players-civ target-player armenians)
+(or	(players-civ target-player burmese)
+(or	(players-civ target-player bulgarians)
+(or	(players-civ target-player gothic)
+(or	(players-civ target-player japanese)
+(or	(players-civ target-player slavic)
+(or	(players-civ target-player viking)
+	(players-civ target-player wu))))))))))))
+=>
+	(up-modify-goal current-affinity c:- 50))
+(defrule
+	(goal temporary-goal stonewall)
+(or	(up-compare-const ffa-game == yes)
+(or	(up-compare-goal wall-strength >= 900)
+	(and	(goal super-pocket yes)
+		(and	(up-compare-goal target-distance >= 144)
+			(and	(goal under-attack no)
+				(up-compare-goal dead-villagers <= 0))))))
+=>
+	(up-modify-goal current-affinity c:+ 75))
+(defrule
+	(goal temporary-goal grush)
+	(up-compare-goal fg-var != yes)
+	(up-compare-const grush-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= grush-affinity))
+(defrule
+	(goal temporary-goal grush)
+	(goal fg-var yes)
+	(up-compare-const fgrush-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= fgrush-affinity))
+(defrule
+	(goal temporary-goal grush)
+	(up-compare-flag strategy-exited-flag == f-grush)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(up-compare-goal temporary-goal != grush)
+	(up-compare-goal map-type >= type-islands)
+=>
+	(up-modify-goal current-affinity c:- 50))
+(defrule
+	(goal temporary-goal grush)
+	(up-compare-goal map-type >= type-islands)
+=>
+	(up-modify-goal current-affinity c:+ 100)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal grush)
+	(up-compare-goal map-type >= type-water)
+=>
+	(up-modify-goal current-affinity c:+ 50)); end mini jump
+(defrule
+	(goal temporary-goal grush)
+	(up-compare-goal fg-var != yes)
+(or	(goal player-position pocket)
+(or	(and	(up-compare-goal map-type >= type-islands)
+		(up-compare-goal target-distance >= 90))
+	(up-compare-goal target-distance >= 126)))
+=>
+	(up-modify-goal current-affinity c:+ 25))
+(defrule
+	(goal temporary-goal grush)
+	(up-compare-goal fg-var != yes)
+	(players-civ any-ally japanese)
+=>
+	(up-modify-goal current-affinity c:+ 10))
+(defrule
+	(goal temporary-goal grush)
+	(goal fg-var yes)
+(or	(goal player-position flank)
+(or	(and	(up-compare-goal map-type <= type-water)
+		(up-compare-goal target-distance < 90))
+(or	(up-research-status c: ri-greek-fire >= research-pending)
+	(and	(current-age >= feudal-age)
+		(and	(up-research-status c: ri-fletching <= research-available)
+			(and	(up-research-status c: ri-ballistics <= research-available)
+				(up-research-status c: ri-chemistry <= research-available)))))))
+=>
+	(up-modify-goal current-affinity c:+ 25))
+(defrule
+	(goal temporary-goal trush)
+	(up-compare-const trush-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= trush-affinity)
+	(up-modify-goal current-affinity c:- 10000))
+(defrule
+	(goal temporary-goal trush)
+	(up-compare-flag strategy-exited-flag == f-trush)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal temporary-goal trush)
+(or	(players-civ target-player armenians)
+(or	(players-civ every-enemy armenians)
+(or	(players-civ target-player georgians)
+(or	(players-civ every-enemy georgians)
+	(up-compare-goal target-distance >= 90)))))
+=>
+	(up-modify-goal current-affinity c:- 50))
+(defrule
+	(goal temporary-goal trush)
+(or	(and	(players-civ any-ally georgians)
+		(not	(civ-selected georgians)))
+(or	(and	(players-civ any-ally tupi)
+		(not	(civ-selected tupi)))
+	(up-compare-goal target-distance < 36)))
+=>
+	(up-modify-goal current-affinity c:+ 50))
+(defrule
+	(goal temporary-goal fast-imp)
+	(goal temporary-goal2 kecil)
+	(up-compare-const fi-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= fi-affinity)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal fast-imp)
+	(goal temporary-goal2 monk-treb)
+	(up-compare-const mt-affinity g:!= current-affinity)
+=>
+	(up-modify-goal current-affinity c:= mt-affinity)); end mini jump
+(defrule
+	(goal temporary-goal fast-imp)
+	(up-compare-flag strategy-exited-flag == f-fast-imp)
+=>
+	(up-modify-goal current-affinity c:- 301))
+(defrule
+	(goal temporary-goal fast-imp)
+(or	(up-compare-goal wall-strength >= 1800)
+	(and	(dropsite-min-distance deer-hunting <= 13)
+		(dropsite-min-distance deer-hunting >= 0)))
+=>
+	(up-modify-goal current-affinity c:+ 50)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal fast-imp)
+	(up-compare-goal wall-strength >= 1080)
+=>
+	(up-modify-goal current-affinity c:+ 10)); end mini jump
+(defrule
+	(goal temporary-goal fast-imp)
+	(goal temporary-goal2 monk-treb)
+	(building-type-count-total castle >= 1)
+=>
+	(up-modify-goal current-affinity c:+ 50))
+(defrule
+	(goal temporary-goal fast-imp)
+(or	(players-military-population every-enemy >= 3)
+(or	(and	(civ-selected portuguese)
+		(and	(goal temporary-goal2 kecil)	
+			(or	(up-compare-goal target-distance < 90)
+				(up-compare-goal feitoria-cap <= 2))))
+	(up-compare-goal target-distance < 45)))
+=>
+	(up-modify-goal current-affinity c:- 50))
+(defrule
+	(goal temporary-goal fast-imp)
+(or	(up-compare-goal wall-strength < 900)
+	(and	(goal temporary-goal2 monk-treb)
+		(players-civ any-enemy teutonic)))
+=>
+	(up-modify-goal current-affinity c:- 150))
+(defrule
+	(civ-selected lithuanians)
+(or	(up-compare-goal temporary-goal2 == relic-war)
+(or	(goal temporary-goal krush)
+	(goal temporary-goal castledrop)))
+(or	(up-compare-goal relic-count >= 1)
+	(up-compare-goal sighted-relics >= 1))
+=>
+	(up-modify-goal temporary-goal19 g:= relic-count)
+	(up-modify-goal temporary-goal19 g:+ sighted-relics)
+	(up-modify-goal temporary-goal19 c:min 4)
+	(up-modify-goal temporary-goal19 c:max 0)
+	(up-modify-goal temporary-goal19 c:* 30)
+	(up-modify-goal current-affinity g:+ temporary-goal19))
+(defrule
+(or	(and	(players-civ any-ally armenians)
+		(not	(civ-selected armenians)))
+(or	(and	(players-civ any-ally gothic)
+		(not	(civ-selected gothic)))
+	(and	(players-civ any-ally khitans)
+		(not	(civ-selected khitans)))))
+(or	(goal temporary-goal drush)
+(or	(goal temporary-goal maa-opener)
+(or	(goal temporary-goal klew)
+	(goal temporary-goal syl-rush))))
+=>
+	(up-modify-goal current-affinity c:+ 15))
+(defrule
+	(players-civ any-ally lithuanians)
+	(goal temporary-goal klew)
+	(up-compare-const TEMPLE-GUARD-AVAILABLE == YES)
+=>
+	(up-modify-goal current-affinity c:+ 15))
+(defrule
+(or	(goal temporary-goal drush)
+(or	(goal temporary-goal maa-opener)
+(or	(and	(goal temporary-goal klew)
+		(up-compare-const TEMPLE-GUARD-AVAILABLE == NO));
+	(goal temporary-goal syl-rush))))
+	(building-type-count-total barracks >= 1)
+=>
+	(up-modify-goal current-affinity c:+ 15))
+(defrule
+	(players-civ any-ally saracen)
+(not	(civ-selected saracen))
+;(or	(and	(goal temporary-goal castledrop)
+;			(up-compare-const uu-type == archer-uu))
+(or	(goal temporary-goal r-flush)
+	(goal temporary-goal a-rush));)
+=>
+	(up-modify-goal current-affinity c:+ 15))
+(defrule
+	(players-civ any-ally briton)
+(not	(civ-selected briton))
+(or	(goal temporary-goal r-flush)
+(or	(goal temporary-goal a-rush)
+(or	(goal temporary-goal ca-rush)
+	(goal temporary-goal ea-rush))))
+=>
+	(up-modify-goal current-affinity c:+ 15))
+(defrule
+(or	(goal temporary-goal r-flush)
+(or	(goal temporary-goal a-rush)
+(or	(goal temporary-goal ca-rush)
+	(goal temporary-goal ea-rush))))
+	(building-type-count-total archery-range >= 1)
+=>
+	(up-modify-goal current-affinity c:+ 15))
+;	(up-get-fact building-type-count-total archery-range temporary-goal6)
+;	(up-modify-goal temporary-goal6 c:min 2)
+;	(up-modify-goal temporary-goal6 c:* 15)
+;	(up-modify-goal current-affinity g:+ temporary-goal6)
+(defrule
+	(players-civ any-ally hun)
+(not	(civ-selected hun))
+(or	(goal temporary-goal s-flush)
+(or	(goal temporary-goal krush)
+(or	(goal temporary-goal steppe-rush)
+	(goal temporary-goal chonkers))))
+=>
+	(up-modify-goal current-affinity c:+ 15))
+(defrule
+(or	(goal temporary-goal s-flush)
+(or	(goal temporary-goal krush)
+(or	(goal temporary-goal steppe-rush)
+	(goal temporary-goal chonkers))))
+	(building-type-count-total stable >= 1)
+=>
+	(up-modify-goal current-affinity c:+ 15))
+(defrule
+	(players-civ any-ally gurjaras)
+(not	(civ-selected gurjaras))
+(or	(and	(goal temporary-goal castledrop)
+		(or	(civ-selected berbers)
+			(or	(civ-selected khmer)
+				(or	(civ-selected persian)
+					(civ-selected saracen)))))
+(or	(goal temporary-goal ea-rush)
+	(goal temporary-goal chonkers)))
+=>
+	(up-modify-goal current-affinity c:+ 15))
+(defrule
+	(players-civ any-ally turkish)
+(not	(civ-selected turkish))
+	(goal temporary-goal castledrop)
+	(up-compare-const uu-type == powder-uu)
+=>
+	(up-modify-goal current-affinity c:+ 15))
+(defrule
+	(up-compare-goal target-distance >= 115); todo
+(or	(goal temporary-goal s-flush)
+(or	(goal temporary-goal ca-rush)
+(or	(goal temporary-goal krush)
+(or	(goal temporary-goal steppe-rush)
+(or	(and	(goal temporary-goal castledrop)
+		(up-compare-const uu-type == cavalry-uu))
+	(goal temporary-goal klew))))))
+=>
+	(up-modify-goal current-affinity c:+ 10))
+(defrule
+	(up-compare-goal number-allies >= 2)
+(or	(goal temporary-goal drush)
+(or	(goal temporary-goal maa-opener)
+(or	(and	(goal player-position flank)
+		(goal temporary-goal s-flush))
+	(and	(goal temporary-goal r-flush)
+		(goal sk-var yes)))))
+=>
+	(up-modify-goal current-affinity c:- 11))
+(defrule
+	(goal temporary-goal drush)
+(or	(up-research-status c: feudal-age >= research-pending)
+(or	(unit-type-count-total militiaman-line g:>= essential-soldiercount)
+	(and	(unit-type-count-total militiaman-line <= 0)
+		(or	(up-compare-goal custom-civ-pop-total >= 24)
+			(up-compare-goal enemy-age >= dfeudal)))))
+=>
+	(up-modify-goal current-affinity c:- 500))
+(defrule
+(or	(goal temporary-goal drush)
+(or	(goal temporary-goal maa-opener)
+(or	(goal temporary-goal r-flush)
+	(goal temporary-goal s-flush))))
+(or	(up-research-status c: castle-age >= research-pending)
+	(and	(goal player-position pocket)
+		(and	(up-compare-goal nomad-start <= 0)
+			(up-compare-goal target-distance >= 45))))
+=>
+	(up-modify-goal current-affinity c:- 500))
+(defrule
+(or	(goal temporary-goal drush)
+(or	(goal temporary-goal maa-opener)
+(or	(goal temporary-goal r-flush)
+	(goal temporary-goal s-flush))))
+;(or	(and		(goal temporary-goal drush)
+;		(up-research-status c: feudal-age >= research-pending))
+(or	(up-compare-goal target-distance >= 126)
+(or	(and	(unit-type-count-total villager >= 26)
+		(strategic-number sn-current-age <= dark))
+(or	(up-compare-const ffa-game == yes)
+	(up-compare-goal wall-strength >= 250))));)
+=>
+	(up-modify-goal current-affinity c:- 101))
+(defrule
+(or	(up-compare-goal temporary-goal2 == relic-war)
+(or	(goal temporary-goal a-rush)
+(or	(goal temporary-goal ca-rush)
+(or	(goal temporary-goal ea-rush)
+(or	(goal temporary-goal krush)
+(or	(goal temporary-goal steppe-rush)
+(or	(goal temporary-goal castledrop)
+(or	(goal temporary-goal klew)
+(or	(goal temporary-goal syl-rush)
+	(goal temporary-goal chonkers))))))))))
+	(goal player-position flank)
+	(up-research-status c: castle-age <= research-available)
+	(up-compare-goal nomad-start <= 0);
+	(up-compare-goal target-distance < 126)
+	(up-compare-const ffa-game != yes);
+	(up-compare-goal wall-strength < 250)
+;	(up-compare-flag micro-flag != f-drush-micro)
+=>
+	(up-modify-goal current-affinity c:- 101))
+(defrule
+(or	(and	(goal temporary-goal besar)
+		(goal temporary-goal2 kecil))
+(or	(goal temporary-goal fast-imp)
+	(goal temporary-goal stonewall)))
+	(up-research-status c: imperial-age <= research-available)
+(or	(up-research-status c: imperial-age <= research-unavailable)
+	(up-compare-goal custom-civ-pop-total g:< min-number-vills))
+;	(goal player-position flank)
+(or	(up-compare-goal nomad-start <= 0);
+	(players-building-count target-player >= 1));
+	(up-compare-goal target-distance < 144)
+	(up-compare-goal wall-strength < 900)
+;	(up-compare-flag micro-flag != f-drush-micro)
+=>
+	(up-modify-goal current-affinity c:- 151))
+(defrule
+	(true)
+=>
+	(up-modify-goal current-affinity g:+ temporary-goal4)
+	(up-modify-goal current-affinity c:max 0)
+	(up-modify-goal temporary-goal5 g:+ strategy-affinity)
+	(up-modify-goal temporary-goal5 c:max 0)
+;	(up-chat-data-to-self "Potential strategy: %d" g: temporary-goal)
+;	(up-chat-data-to-self "Potential military-choice: %d" g: temporary-goal2)
+;	(up-chat-data-to-self "Potential affinity: %d" g: current-affinity)
+)
+(defrule
+	(goal temporary-goal3 1)
+	(up-compare-goal strategy-affinity g:!= current-affinity)
+	(up-compare-goal strategy g:== temporary-goal)
+	(up-compare-goal military-choice g:== temporary-goal2)
+=>
+;	(up-chat-data-to-self "Updated affinity: %d" g: current-affinity)
+	(up-modify-goal strategy-affinity g:= current-affinity)
+	(up-jump-rule 1))
+(defrule
+	(goal temporary-goal3 2)
+(or	(and	(goal temporary-goal besar)
+		(goal temporary-goal2 besar))
+(or	(and	(up-compare-goal potential-strategy g:== temporary-goal)
+		(up-compare-goal potential-military-choice g:== temporary-goal2))
+(or	(and	(up-compare-goal strategy g:== temporary-goal)
+		(up-compare-goal military-choice g:== temporary-goal2))
+	(and	(up-compare-goal current-affinity g:> potential-strategy-affinity)
+		(up-compare-goal current-affinity g:> temporary-goal5)))))
+=>
+	(up-modify-goal potential-strategy g:= temporary-goal)
+	(up-modify-goal potential-military-choice g:= temporary-goal2)
+	(up-modify-goal potential-strategy-affinity g:= current-affinity)
+;	(up-chat-data-to-self "Previous affinity: %d" g: strategy-affinity)
+;	(up-chat-data-to-self "Potential strategy: %d" g: potential-strategy)
+;	(up-chat-data-to-self "Potential affinity: %d" g: potential-strategy-affinity)
+	(up-jump-direct g: temporary-goal16)); end jump
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+	(up-compare-goal strategy-type != dark-war)
+	(goal strategy drush)
+=>
+;	(chat-local-to-self "Preparing to fight in the dark-age.")
+	(set-goal strategy-type dark-war))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+	(up-compare-goal strategy-type != feudal-war)
+(or	(goal strategy maa-opener)
+(or	(goal strategy sling)
+(or	(goal strategy grush)
+(or	(goal strategy r-flush)
+(or	(goal strategy s-flush)
+(or	(goal strategy trush)
+(or	(and	(up-compare-goal feudal-villagers <= -1)
+		(strategic-number sn-current-age <= dark))
+	(and	(goal strategy besar)
+		(up-compare-goal enemy-strategy == det-flush)))))))))
+=>
+;	(chat-local-to-self "Preparing to fight in the feudal-age.")
+	(set-goal strategy-type feudal-war))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+	(up-compare-goal strategy-type != castle-war)
+(or	(goal military-choice relic-war)
+(or	(goal strategy krush)
+(or	(goal strategy steppe-rush)
+(or	(goal strategy klew)
+(or	(goal strategy syl-rush)
+(or	(goal strategy chonkers)
+(or	(goal strategy a-rush)
+(or	(goal strategy ca-rush)
+	(goal strategy ea-rush)))))))))
+=>
+;	(chat-local-to-self "Preparing to fight in the castle-age.")
+	(set-goal strategy-type castle-war))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+	(up-compare-goal strategy-type != imperial-war)
+(or	(goal strategy fast-imp)
+(or	(goal strategy stonewall)
+(or	(and	(goal strategy besar)
+		(up-compare-goal enemy-strategy != det-flush))
+	(goal strategy castledrop))))
+=>
+;	(chat-local-to-self "Preparing to fight in the imperial-age.")
+	(set-goal strategy-type imperial-war))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+	(up-compare-goal strategy-type2 != type-land)
+	(up-compare-goal strategy != grush)
+=>
+;	(chat-local-to-self "Land-strategy.")
+	(set-goal strategy-type2 type-land))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+	(up-compare-goal strategy-type2 != type-water)
+	(up-compare-goal strategy == grush)
+=>
+;	(chat-local-to-self "Water-strategy.")
+	(set-goal strategy-type2 type-water))
+
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+=>
+	(up-modify-goal attack-priorities g:= strategy))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+	(up-compare-goal attack-priorities != besar)
+	(up-compare-goal attack-priorities != drush)
+	(up-compare-goal attack-priorities != grush)
+	(up-compare-goal attack-priorities != s-flush)
+	(up-compare-goal attack-priorities != r-flush)
+	(up-compare-goal attack-priorities != a-rush)
+	(up-compare-goal attack-priorities != ca-rush)
+	(up-compare-goal attack-priorities != ea-rush)
+	(up-compare-goal attack-priorities != krush)
+	(up-compare-goal attack-priorities != steppe-rush)
+	(up-compare-goal attack-priorities != chonkers)
+	(up-compare-goal attack-priorities != klew)
+	(up-compare-goal attack-priorities != syl-rush)
+	(up-compare-goal attack-priorities != stonewall)
+=>
+	(set-goal attack-priorities besar)
+	(up-jump-rule 1))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+(or	(and	(current-age >= imperial-age)
+		(population g:>= max-civ-pop))
+(or	(unit-type-count battering-ram-line >= 2)
+(or	(unit-type-count armored-elephant-line >= 2)
+(or	(unit-type-count traction-trebuchet >= 1)
+(or	(unit-type-count trebuchet-set >= 1)
+(or	(unit-type-count bombard-cannon-line >= 4)
+	(unit-type-count-total mangonel-line >= 16)))))))
+	(up-compare-goal attack-priorities != besar)
+=>
+	(set-goal attack-priorities besar)); end mini jump
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+=>
+	(set-goal temporary-goal 1)
+	(set-goal temporary-goal2 1)
+	(set-goal temporary-goal3 1)
+	(set-goal temporary-goal4 1)
+	(set-goal temporary-goal5 1)
+	(set-goal temporary-goal6 1)
+	(set-goal temporary-goal7 1))
+(defrule
+	(up-compare-goal attack-priorities != drush)
+	(up-compare-goal attack-priorities != s-flush)
+	(up-compare-goal attack-priorities != r-flush)
+=>
+	(up-jump-rule 1))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+=>
+	(set-goal temporary-goal 1); heavy fortifications
+	(set-goal temporary-goal2 3); simple fortifications
+	(set-goal temporary-goal3 4); town center
+	(set-goal temporary-goal4 7); military buildings
+	(set-goal temporary-goal5 11); camps
+	(set-goal temporary-goal6 10); mill
+	(set-goal temporary-goal7 2)); dock
+(defrule
+	(up-compare-goal attack-priorities != grush)
+=>
+	(up-jump-rule 1))
+(defrule
+	(true)
+=>
+	(set-goal temporary-goal 1); heavy fortifications
+	(set-goal temporary-goal2 7); simple fortifications
+	(set-goal temporary-goal3 5); town center
+	(set-goal temporary-goal4 6); military buildings
+	(set-goal temporary-goal5 8); camps
+	(set-goal temporary-goal6 10); mill
+	(set-goal temporary-goal7 11)); dock
+(defrule
+	(up-compare-goal attack-priorities != a-rush)
+	(up-compare-goal attack-priorities != ca-rush)
+	(up-compare-goal attack-priorities != ea-rush)
+=>
+	(up-jump-rule 1))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+=>
+	(set-goal temporary-goal 1); heavy fortifications
+	(set-goal temporary-goal2 4); simple fortifications
+	(set-goal temporary-goal3 8); town center
+	(set-goal temporary-goal4 6); military buildings
+	(set-goal temporary-goal5 10); camps
+	(set-goal temporary-goal6 9); mill
+	(set-goal temporary-goal7 2)); dock
+(defrule
+	(up-compare-goal attack-priorities != krush)
+	(up-compare-goal attack-priorities != chonkers)
+	(up-compare-goal attack-priorities != steppe-rush)
+	(up-compare-goal attack-priorities != klew)
+	(up-compare-goal attack-priorities != syl-rush)
+=>
+	(up-jump-rule 1))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+=>
+	(set-goal temporary-goal 1); heavy fortifications
+	(set-goal temporary-goal2 11); simple fortifications
+	(set-goal temporary-goal3 6); town center
+	(set-goal temporary-goal4 7); military buildings
+	(set-goal temporary-goal5 10); camps
+	(set-goal temporary-goal6 9); mill
+	(set-goal temporary-goal7 2)); dock
+(defrule
+	(up-compare-goal attack-priorities != stonewall)
+=>
+	(up-jump-rule 1))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+=>
+	(set-goal temporary-goal 4); heavy fortifications
+	(set-goal temporary-goal2 7); simple fortifications
+	(set-goal temporary-goal3 11); town center
+	(set-goal temporary-goal4 6); military buildings
+	(set-goal temporary-goal5 10); camps
+	(set-goal temporary-goal6 9); mill
+	(set-goal temporary-goal7 2)); dock
+(defrule
+	(up-compare-goal attack-priorities != besar)
+=>
+	(up-jump-rule 2))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+	(strategic-number sn-current-age <= castlea)
+=>
+	(set-goal temporary-goal 4); heavy fortifications
+	(set-goal temporary-goal2 5); simple fortifications
+	(set-goal temporary-goal3 6); town center
+	(set-goal temporary-goal4 7); military buildings
+	(set-goal temporary-goal5 10); camps
+	(set-goal temporary-goal6 9); mill
+	(set-goal temporary-goal7 8); dock
+	(up-jump-rule 1))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+=>
+	(set-goal temporary-goal 10); heavy fortifications
+	(set-goal temporary-goal2 9); simple fortifications
+	(set-goal temporary-goal3 10); town center
+	(set-goal temporary-goal4 6); military buildings
+	(set-goal temporary-goal5 8); camps
+	(set-goal temporary-goal6 7); mill
+	(set-goal temporary-goal7 2)); dock
+
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+=>
+	(up-set-offense-priority c: castle g: temporary-goal)
+	(up-set-offense-priority c: bombard-tower g: temporary-goal)
+	(up-set-offense-priority c: krepost g: temporary-goal)
+	(up-set-offense-priority c: donjon g: temporary-goal2)
+	(up-set-offense-priority c: watch-tower g: temporary-goal2)
+	(up-set-offense-priority c: town-center g: temporary-goal3)
+	(up-set-offense-priority c: town-center-foundation g: temporary-goal3)
+	(up-set-offense-priority c: monastery g: temporary-goal4)
+	(up-set-offense-priority c: barracks g: temporary-goal4)
+	(up-set-offense-priority c: stable g: temporary-goal4)
+	(up-set-offense-priority c: archery-range g: temporary-goal4)
+	(up-set-offense-priority c: siege-workshop g: temporary-goal4)
+	(up-set-offense-priority c: lumber-camp g: temporary-goal5)
+	(up-set-offense-priority c: mining-camp g: temporary-goal5)
+	(up-set-offense-priority c: mule-cart g: temporary-goal5)
+	(up-set-offense-priority c: settlement g: temporary-goal5)
+	(up-set-offense-priority c: mill g: temporary-goal6)
+	(up-set-offense-priority c: farm g: temporary-goal6)
+	(up-set-offense-priority c: pasture g: temporary-goal6)
+	(up-set-offense-priority c: dock g: temporary-goal7))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+=>
+	(up-modify-goal temporary-goal c:* 2000)
+	(up-modify-goal temporary-goal2 c:* 2000)
+	(up-modify-goal temporary-goal3 c:* 2000)
+	(up-modify-goal temporary-goal4 c:* 2000)
+	(up-modify-goal temporary-goal5 c:* 2000)
+	(up-modify-goal temporary-goal6 c:* 2000)
+	(up-modify-goal temporary-goal7 c:* 2000)
+	(up-set-defense-priority c: castle g: temporary-goal)
+	(up-set-defense-priority c: bombard-tower g: temporary-goal)
+	(up-set-defense-priority c: krepost g: temporary-goal)
+	(up-set-defense-priority c: donjon g: temporary-goal2)
+	(up-set-defense-priority c: watch-tower g: temporary-goal2)
+	(up-set-defense-priority c: town-center g: temporary-goal3)
+	(up-set-defense-priority c: town-center-foundation g: temporary-goal3)
+	(up-set-defense-priority c: monastery g: temporary-goal4)
+	(up-set-defense-priority c: barracks g: temporary-goal4)
+	(up-set-defense-priority c: stable g: temporary-goal4)
+	(up-set-defense-priority c: archery-range g: temporary-goal4)
+	(up-set-defense-priority c: siege-workshop g: temporary-goal4)
+	(up-set-defense-priority c: lumber-camp g: temporary-goal5)
+	(up-set-defense-priority c: mining-camp g: temporary-goal5)
+	(up-set-defense-priority c: mule-cart g: temporary-goal5)
+	(up-set-defense-priority c: settlement g: temporary-goal5)
+	(up-set-defense-priority c: mill g: temporary-goal6)
+	(up-set-defense-priority c: farm g: temporary-goal6)
+	(up-set-defense-priority c: pasture g: temporary-goal6)
+	(up-set-defense-priority c: dock g: temporary-goal7))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+	(players-unit-type-count any-enemy trade-cart >= 1)
+	(up-compare-const mp-game == yes)
+=>
+	(up-set-defense-priority c: market c: 12000); 2500
+	(up-set-offense-priority c: market c: 6)); 5
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+=>
+	(up-set-offense-priority c: 1378 c: 10)
+	(up-set-offense-priority c: br-workshop c: 10)
+	(up-set-defense-priority c: 1378 c: 30000)
+	(up-set-defense-priority c: br-workshop c: 30000))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+	(victory-condition standard)
+=>
+	(up-set-offense-priority c: wonder c: 11)
+	(up-set-defense-priority c: wonder c: 32767))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+	(up-compare-const dtw-game == 1)
+=>
+	(up-set-offense-priority c: wonder c: 11)
+	(up-set-defense-priority c: wonder c: 32767))
+(defrule
+	(up-compare-goal temporary-goal3 >= 1)
+	(up-compare-const koth-game == 1)
+=>
+	(up-set-offense-priority c: koth-monument c: 11)
+	(up-set-defense-priority c: koth-monument c: 32767))
+(defrule
+	(true)
+=>
+	(up-jump-direct g: temporary-goal16)); end jumps
