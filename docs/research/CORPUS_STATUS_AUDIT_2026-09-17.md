@@ -62,14 +62,14 @@ Barbarian, Rehoboam, The Duke, and additional serious-AI specimens remain open u
 
 Closed:
 
-- [x] AoE2 AI parser/linter implementations — current community tooling provides structured syntax/package diagnostics.
-- [x] Syntax-highlighting/command registries — current parser ecosystem maintains DE command/type registries.
-- [x] Static symbol/dependency analyzers — package/load integrity and symbol diagnostics are available.
-- [x] Replay parsers/replay-analysis tooling — current DE replay parsing ecosystem is documented and available.
+- [x] AoE2 AI parser/linter implementations.
+- [x] Syntax-highlighting/command registries.
+- [x] Static symbol/dependency analyzers.
+- [x] Replay parsers/replay-analysis tooling.
 - [x] Runtime/debug tooling — existing AoE2DE AI debugging/AIDEBUG and replay-analysis work are already documented in the research corpus.
 - [ ] Scenario/test harnesses where reliable — the previous automated scenario-loader path is intentionally retired; no replacement is being counted as closed.
 
-Online tooling remains reference material unless checked against the target installation. Current parser documentation explicitly distinguishes registry coverage, DE compatibility, package integrity, command roles, typed operands, load cycles, and other failure classes. citeturn2search0
+Online tooling remains reference material unless checked against the target installation.
 
 ### E. Historical Corpus — 5/5
 
@@ -81,7 +81,7 @@ Closed at the reference-corpus level:
 - [x] Older expert-system explanations of goals/timers/SNs/escrow/load behavior.
 - [x] Historical command/fact/action lists and community references.
 
-Historical sources are explicitly non-authoritative for current-DE semantics. The official DE release history is used where available; for example, Update 42848 documents expansion of strategic-number capacity and changes to `up-can-build`, among other scripting changes. citeturn1search1
+Historical sources are explicitly non-authoritative for current-DE semantics. Current official release history is used only as versioned reference evidence.
 
 ### F. Runtime Evidence Corpus — 0/16
 
@@ -143,9 +143,9 @@ These are already established as project operating rules:
 
 **Checklist 3 architecture:** not started. No production/construction/military architecture should be declared final until the remaining ABI boundaries are documented.
 
-## Important negative finding
+## Important retrieval-integrity finding
 
-The repository contains a large preserved `AI (HD version).per` object in Git's tree, but the GitHub contents endpoint currently returns an empty textual payload for that path while the tree records a 1,240,320-byte blob. That mismatch means the file must not be treated as successfully readable through the contents endpoint without retrieving the blob by SHA. The current corpus therefore has a **retrieval-integrity issue** for that particular donor file, even though the Git object exists.
+The GitHub tree records a non-empty Git object for `AI (HD version).per`, but the repository contents retrieval used during this audit did not return usable textual content for that path. Therefore the file is **not being treated as readable corpus evidence yet**. This is a Git retrieval/integrity item to resolve before using that donor file as a primary source.
 
 ## Bottom line
 
