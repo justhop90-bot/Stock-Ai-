@@ -1,0 +1,304 @@
+{
+  "schema_version": "ai-hd-forensic-import-manifest-0.1",
+  "manifest_id": "import-manifest:ai-hd:2026-09-17",
+  "target_corpus": {
+    "repository": "justhop90-bot/Stock-Ai-",
+    "branch": "main",
+    "purpose": "AI-HD behavioral atlas",
+    "target_model": "ai-hd-ir-0.1"
+  },
+  "source_corpora": [
+    {
+      "corpus_id": "corpus:aiby z",
+      "repository": "justhop90-bot/AiByz",
+      "ref": "main",
+      "commit": "fa46d1a0f1f74f0b0cdf5705344a5ea42e885e95",
+      "role": "FORENSIC-SOURCE",
+      "historical_status": "MIXED"
+    }
+  ],
+  "imports": [
+    {
+      "import_id": "import:ai-hd:p0-stock-baseline",
+      "source": {
+        "corpus_id": "corpus:aiby z",
+        "artifact_id": "artifact:P0_STOCK_AND_AEGISPROM_TOTAL_DECONSTRUCTION_2026-09-07",
+        "record_id": "record:p0-stock-baseline",
+        "record_type": "stock-corpus-baseline",
+        "source_path": "docs/forensics/P0_STOCK_AND_AEGISPROM_TOTAL_DECONSTRUCTION_2026-09-07.md",
+        "source_commit": "fa46d1a0f1f74f0b0cdf5705344a5ea42e885e95",
+        "source_blob": "f7da783b4c209421bd5250233eff437f22cf1e85"
+      },
+      "provenance": {
+        "origin_repository": "justhop90-bot/AiByz",
+        "origin_ref": "main",
+        "origin_commit": "fa46d1a0f1f74f0b0cdf5705344a5ea42e885e95",
+        "origin_blob": "f7da783b4c209421bd5250233eff437f22cf1e85",
+        "origin_path": "docs/forensics/P0_STOCK_AND_AEGISPROM_TOTAL_DECONSTRUCTION_2026-09-07.md",
+        "origin_record_id": "record:p0-stock-baseline",
+        "origin_source_type": "FORENSIC_DOCUMENT",
+        "retrieval_verified": true
+      },
+      "semantic_coverage": {
+        "claim_classes": ["LOAD_ORDER", "STATE", "DATAFLOW", "ENGINE_BOUNDARY"],
+        "lifecycle_stages": ["LOAD", "STATE", "OBSERVATION", "DEMAND", "EXECUTION", "VERIFICATION", "RECOVERY"],
+        "subjects": ["AI (HD version).per", "stock civilization OS"],
+        "edges_covered": ["stock-source->effective-program", "section-map->behavioral-atlas"],
+        "coverage_scope": "EXACT"
+      },
+      "transformation": {
+        "status": "SCHEMA_MAPPED",
+        "operations": ["preserve source identity", "map section inventory to atlas scope"],
+        "losses": [],
+        "derived_fields": ["target claim/edge identifiers"]
+      },
+      "evidence": {
+        "source_evidence_type": "DIRECT",
+        "source_closure": "SOURCE",
+        "target_evidence_type": "DIRECT",
+        "target_closure": "SOURCE",
+        "promotion": false,
+        "limitations": ["source baseline was previously established outside Stock-Ai; this import preserves provenance"]
+      },
+      "target": {
+        "claim_ids": ["claim:stock:baseline-identity", "claim:stock:section-map"],
+        "edge_ids": ["edge:stock:source->effective-program", "edge:stock:section-map->atlas"],
+        "target_record_types": ["behavioral_claim", "behavioral_edge"],
+        "mapping_role": "SUPPORT"
+      },
+      "validation": {
+        "status": "VALID",
+        "checks": ["SOURCE_ID_RESOLVES", "PROVENANCE_RESOLVES", "EVIDENCE_STATUS_PRESERVED", "NO_CLOSURE_PROMOTION"]
+      }
+    },
+    {
+      "import_id": "import:ai-hd:r2-state-ownership",
+      "source": {
+        "corpus_id": "corpus:aiby z",
+        "artifact_id": "artifact:R2_MUTABLE_STATE_OWNERSHIP_LEDGER_2026-09-09",
+        "record_id": "record:r2-state-ownership-seed",
+        "record_type": "mutable-state-ownership-ledger",
+        "source_path": "docs/forensics/R2_MUTABLE_STATE_OWNERSHIP_LEDGER_2026-09-09.md",
+        "source_commit": "fa46d1a0f1f74f0b0cdf5705344a5ea42e885e95",
+        "source_blob": "8c6e821643c2d91566ba04a5cc11a85a92de73b8"
+      },
+      "provenance": {
+        "origin_repository": "justhop90-bot/AiByz",
+        "origin_ref": "main",
+        "origin_commit": "fa46d1a0f1f74f0b0cdf5705344a5ea42e885e95",
+        "origin_blob": "8c6e821643c2d91566ba04a5cc11a85a92de73b8",
+        "origin_path": "docs/forensics/R2_MUTABLE_STATE_OWNERSHIP_LEDGER_2026-09-09.md",
+        "origin_record_id": "record:r2-state-ownership-seed",
+        "origin_source_type": "FORENSIC_DOCUMENT",
+        "retrieval_verified": true
+      },
+      "semantic_coverage": {
+        "claim_classes": ["OWNERSHIP", "STATE", "RESOURCE", "OBSERVATION"],
+        "lifecycle_stages": ["STATE", "AUTHORIZATION", "VERIFICATION", "RECOVERY"],
+        "subjects": ["goal channels", "strategic numbers", "timers", "escrow", "engine observations"],
+        "edges_covered": ["channel->writer", "channel->reader", "channel->resetter", "channel->owner"],
+        "coverage_scope": "PARTIAL"
+      },
+      "transformation": {
+        "status": "SCHEMA_MAPPED",
+        "operations": ["map ownership ledger fields to behavioral claims/edges"],
+        "losses": ["ledger is explicitly a seed and not a complete matrix"],
+        "derived_fields": ["ownership claim identifiers"]
+      },
+      "evidence": {
+        "source_evidence_type": "DIRECT",
+        "source_closure": "CONTROL",
+        "target_evidence_type": "DIRECT",
+        "target_closure": "CONTROL",
+        "promotion": false,
+        "limitations": ["R2 gate remains open", "runtime semantics remain open where documented"]
+      },
+      "target": {
+        "claim_ids": ["claim:state:ownership-model", "claim:state:writer-reader-resetter"],
+        "edge_ids": ["edge:state:channel->owner", "edge:state:writer->reader"],
+        "target_record_types": ["behavioral_claim", "behavioral_edge"],
+        "mapping_role": "SUPPORT"
+      },
+      "validation": {
+        "status": "VALID_WITH_LIMITATIONS",
+        "checks": ["SOURCE_ID_RESOLVES", "PROVENANCE_RESOLVES", "NO_CLOSURE_PROMOTION", "OPEN_R2_PRESERVED"]
+      }
+    },
+    {
+      "import_id": "import:ai-hd:production-authority-reference",
+      "source": {
+        "corpus_id": "corpus:aiby z",
+        "artifact_id": "artifact:PRODUCTION_AUTHORITY_MATRIX_2026-09-12",
+        "record_id": "record:production-authority-matrix",
+        "record_type": "production-authority-matrix",
+        "source_path": "docs/production/PRODUCTION_AUTHORITY_MATRIX_2026-09-12.md",
+        "source_commit": "fa46d1a0f1f74f0b0cdf5705344a5ea42e885e95",
+        "source_blob": "76adca6e72c340f9f3aa2fbf7e4a908d8b3b25c6"
+      },
+      "provenance": {
+        "origin_repository": "justhop90-bot/AiByz",
+        "origin_ref": "main",
+        "origin_commit": "fa46d1a0f1f74f0b0cdf5705344a5ea42e885e95",
+        "origin_blob": "76adca6e72c340f9f3aa2fbf7e4a908d8b3b25c6",
+        "origin_path": "docs/production/PRODUCTION_AUTHORITY_MATRIX_2026-09-12.md",
+        "origin_record_id": "record:production-authority-matrix",
+        "origin_source_type": "FORENSIC_DOCUMENT",
+        "retrieval_verified": true
+      },
+      "semantic_coverage": {
+        "claim_classes": ["DEMAND", "PRIORITY", "FEASIBILITY", "EXECUTION", "VERIFICATION", "PRODUCTION"],
+        "lifecycle_stages": ["DEMAND", "PRIORITY", "FEASIBILITY", "EXECUTION", "VERIFICATION", "REASSESSMENT"],
+        "subjects": ["desired-number-*", "militaryUnits.per", "can-train", "train"],
+        "edges_covered": ["policy->desired-number", "desired-number->executor", "count->can-train->train"],
+        "coverage_scope": "ANALOGICAL"
+      },
+      "transformation": {
+        "status": "REFERENCE_ONLY",
+        "operations": ["preserve as executor-pattern reference"],
+        "losses": [],
+        "derived_fields": []
+      },
+      "evidence": {
+        "source_evidence_type": "DIRECT",
+        "source_closure": "CONTROL",
+        "target_evidence_type": "DIRECT",
+        "target_closure": "CONTROL",
+        "promotion": false,
+        "limitations": ["targets installed AIByzBuild, not Stock-Ai AI-HD source"]
+      },
+      "target": {
+        "claim_ids": ["claim:production:executor-pattern", "claim:production:can-train-boundary"],
+        "edge_ids": ["edge:production:desired-number->executor", "edge:production:feasibility->train"],
+        "target_record_types": ["behavioral_claim", "behavioral_edge"],
+        "mapping_role": "REFERENCE-ANALOG"
+      },
+      "validation": {
+        "status": "VALID_WITH_LIMITATIONS",
+        "checks": ["SOURCE_ID_RESOLVES", "PROVENANCE_RESOLVES", "ANALOGUE_NOT_PROMOTED", "NO_CURRENT-DE_CLOSURE"]
+      }
+    },
+    {
+      "import_id": "import:ai-hd:construction-executor-reference",
+      "source": {
+        "corpus_id": "corpus:aiby z",
+        "artifact_id": "artifact:CONSTRUCTION_EXECUTOR_FORENSICS_2026-09-16",
+        "record_id": "record:construction-executor",
+        "record_type": "executor-forensics",
+        "source_path": "docs/forensics/CONSTRUCTION_EXECUTOR_FORENSICS_2026-09-16.md",
+        "source_commit": "fa46d1a0f1f74f0b0cdf5705344a5ea42e885e95",
+        "source_blob": "14b270335814af840b6b3c5c9b44cafca47a77e6"
+      },
+      "provenance": {
+        "origin_repository": "justhop90-bot/AiByz",
+        "origin_ref": "main",
+        "origin_commit": "fa46d1a0f1f74f0b0cdf5705344a5ea42e885e95",
+        "origin_blob": "14b270335814af840b6b3c5c9b44cafca47a77e6",
+        "origin_path": "docs/forensics/CONSTRUCTION_EXECUTOR_FORENSICS_2026-09-16.md",
+        "origin_record_id": "record:construction-executor",
+        "origin_source_type": "FORENSIC_DOCUMENT",
+        "retrieval_verified": true
+      },
+      "semantic_coverage": {
+        "claim_classes": ["EXECUTION", "VERIFICATION", "CONSTRUCTION", "ENGINE_BOUNDARY"],
+        "lifecycle_stages": ["FEASIBILITY", "EXECUTION", "PENDING", "VERIFICATION", "COMPLETION", "REASSESSMENT"],
+        "subjects": ["AiBuilder/construction.per", "build", "up-build-line", "up-pending-objects", "up-pending-placement"],
+        "edges_covered": ["feasibility->command", "command->pending", "pending->verification"],
+        "coverage_scope": "ANALOGICAL"
+      },
+      "transformation": {
+        "status": "REFERENCE_ONLY",
+        "operations": ["preserve executor/pending boundary pattern"],
+        "losses": [],
+        "derived_fields": []
+      },
+      "evidence": {
+        "source_evidence_type": "DIRECT",
+        "source_closure": "CONTROL",
+        "target_evidence_type": "DIRECT",
+        "target_closure": "CONTROL",
+        "promotion": false,
+        "limitations": ["construction executor is current AiBuilder evidence, not proof of Stock-Ai production execution"]
+      },
+      "target": {
+        "claim_ids": ["claim:executor:command-boundary", "claim:lifecycle:pending-is-not-completion"],
+        "edge_ids": ["edge:executor->command", "edge:command->pending", "edge:pending->completion"],
+        "target_record_types": ["behavioral_claim", "behavioral_edge"],
+        "mapping_role": "REFERENCE-ANALOG"
+      },
+      "validation": {
+        "status": "VALID_WITH_LIMITATIONS",
+        "checks": ["SOURCE_ID_RESOLVES", "PROVENANCE_RESOLVES", "PENDING_NOT_PROMOTED_TO_COMPLETION"]
+      }
+    },
+    {
+      "import_id": "import:ai-hd:consumer-provenance-historical",
+      "source": {
+        "corpus_id": "corpus:aiby z",
+        "artifact_id": "artifact:AOE2DE_CONSUMER_PROVENANCE_CLOSURE_PASS11_2026-09-04",
+        "record_id": "record:consumer-provenance-pass11",
+        "record_type": "consumer-provenance-closure",
+        "source_path": "03_HD_ARCHAEOLOGY/AOE2DE_CONSUMER_PROVENANCE_CLOSURE_PASS11_2026-09-04.md",
+        "source_commit": "fa46d1a0f1f74f0b0cdf5705344a5ea42e885e95",
+        "source_blob": "6f63c05f0e3908cd29c0efdb5deadc64e35751e4"
+      },
+      "provenance": {
+        "origin_repository": "justhop90-bot/AiByz",
+        "origin_ref": "main",
+        "origin_commit": "fa46d1a0f1f74f0b0cdf5705344a5ea42e885e95",
+        "origin_blob": "6f63c05f0e3908cd29c0efdb5deadc64e35751e4",
+        "origin_path": "03_HD_ARCHAEOLOGY/AOE2DE_CONSUMER_PROVENANCE_CLOSURE_PASS11_2026-09-04.md",
+        "origin_record_id": "record:consumer-provenance-pass11",
+        "origin_source_type": "HISTORICAL_REFERENCE",
+        "retrieval_verified": true
+      },
+      "semantic_coverage": {
+        "claim_classes": ["DATAFLOW", "DEMAND", "FEASIBILITY", "EXECUTION", "VERIFICATION"],
+        "lifecycle_stages": ["STATE", "DEMAND", "FEASIBILITY", "EXECUTION", "VERIFICATION"],
+        "subjects": ["traincamel", "stable", "can-train", "train"],
+        "edges_covered": ["demand->producer-selection", "producer-selection->feasibility", "feasibility->action"],
+        "coverage_scope": "ANALOGICAL"
+      },
+      "transformation": {
+        "status": "REFERENCE_ONLY",
+        "operations": ["preserve historical consumer-to-action closure as search template"],
+        "losses": [],
+        "derived_fields": []
+      },
+      "evidence": {
+        "source_evidence_type": "DIRECT",
+        "source_closure": "CONTROL",
+        "target_evidence_type": "DIRECT",
+        "target_closure": "CONTROL",
+        "promotion": false,
+        "limitations": ["Layer 2 HD/Promisory archaeology; historical only"]
+      },
+      "target": {
+        "claim_ids": ["claim:production:consumer-to-action-pattern"],
+        "edge_ids": ["edge:production:consumer->action-pattern"],
+        "target_record_types": ["behavioral_claim", "behavioral_edge"],
+        "mapping_role": "REFERENCE-ANALOG"
+      },
+      "validation": {
+        "status": "VALID_WITH_LIMITATIONS",
+        "checks": ["SOURCE_ID_RESOLVES", "PROVENANCE_RESOLVES", "HISTORICAL_ISOLATION", "NO_CURRENT-DE_CLOSURE"]
+      }
+    }
+  ],
+  "global_invariants": [
+    "IMPORT_DOES_NOT_PROMOTE_EVIDENCE",
+    "HISTORICAL_EVIDENCE_CANNOT_CLOSE_CURRENT_DE_EDGES",
+    "RUNTIME_EVIDENCE_CANNOT_BE_CONVERTED_TO_SOURCE_PROOF",
+    "PENDING_DOES_NOT_EQUAL_COMPLETION",
+    "COMMAND_DOES_NOT_EQUAL_COMPLETION",
+    "NEGATIVE_SEARCH_DOES_NOT_PROVE_GLOBAL_ABSENCE",
+    "UNSUPPORTED_TRANSITIONS_REMAIN_OPEN"
+  ],
+  "validation": {
+    "status": "VALID_WITH_LIMITATIONS",
+    "import_count": 5,
+    "direct_current_stock_imports": 1,
+    "reference_analogs": 3,
+    "historical_reference": 1,
+    "runtime_probes_run": false
+  }
+}
