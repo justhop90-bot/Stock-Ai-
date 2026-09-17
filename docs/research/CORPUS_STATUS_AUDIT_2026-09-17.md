@@ -6,21 +6,21 @@
 
 ## Result
 
-The Source Corpus Checklist contains **87 atomic checklist items** across sections A–H.
+The current `SOURCE_CORPUS_CHECKLIST_v0.1.md` contains **90 atomic checklist items** across sections A–H. A prior status note reported 87 because it used stale section cardinalities; this revision reconciles the count against the actual checklist file, including 11 A-items, 17 B-items, and 7 D-items.
 
-**41 items can be checked off now.**
+**51 items can be checked off now.**
 
-That is **41/87 = 47%** of the corpus checklist.
+That is **51/90 = 56.7%** of the corpus checklist.
 
-The remaining **46 items stay open**. The largest blocked block is runtime evidence: no runtime probes are being used for this audit, so runtime semantics remain UNKNOWN/OPEN rather than being inferred from source.
+The remaining **39 items stay open**. Runtime evidence remains the largest intentionally blocked block: no runtime probes are being used for this donor audit, so runtime semantics remain UNKNOWN/OPEN rather than being inferred from source.
 
 ## Evidence-backed checkoffs
 
-### A. Current Engine — 0/10
+### A. Current Engine — 0/11
 
 No A-item is closed from GitHub/online evidence alone. The checklist requires acquisition from the exact AoE2DE installation/build used by Stock-Ai-. The project has a known target build from prior work, but the exact installation corpus, executable/resource hashes, complete local documentation, and current local registry have not been frozen inside Stock-Ai-.
 
-### B. Official / Promi AI — 14/16
+### B. Official / Promi AI — 15/17
 
 Closed at the **corpus-inventory level**:
 
@@ -43,22 +43,45 @@ Closed at the **corpus-inventory level**:
 
 These are **corpus checkoffs**, not claims that every subsystem's runtime effect has been verified.
 
-### C. Mature Community AIs — 8/25
+### C. Mature Community AIs — 17/25
 
-Closed only for Shadow, because TheByzantineShadow has already undergone the required forensic extraction:
+#### Shadow — 8/8
 
-- [x] Shadow loader architecture.
-- [x] Shadow escrow and commitment state.
-- [x] Shadow build progression.
-- [x] Shadow priority arbitration.
-- [x] Shadow release/cancellation paths.
-- [x] Shadow military state management.
-- [x] Shadow recovery behavior.
-- [x] Shadow static tooling/parsers.
+Previously closed through the TheByzantineShadow forensic corpus.
 
-Barbarian, Rehoboam, The Duke, and additional serious-AI specimens remain open until their mechanisms are extracted to the same evidence standard.
+#### Barbarian — 6/6
 
-### D. Tooling Corpus — 5/6
+The public `darkeclipz/aoe2-ai` mirror preserves Barbarian 2.18 as a 1,877,137-byte `Barbarian.per` plus a readable modular `Barbarian/` corpus. Indexed source excerpts establish:
+
+- [x] Economy control — explicit escrow percentage changes, escrow release, and resource-spending control in strategy/research modules.
+- [x] Build-order abstraction — named FC, drush, walls, castle-drop, boom, and civ/map-specific strategy modules select state through goals and gated rules.
+- [x] Production/composition logic — unit-count, `can-train`, unique-unit, siege, and enemy-composition predicates drive production choices.
+- [x] Military planning — dedicated rush, raid, castle, siege, monk/trebuchet, wonder, and defensive strategy modules exist.
+- [x] Strategic-number usage — strategy modules explicitly change military/response SNs.
+- [x] Conditional/civilization behavior — extensive `#load-if-defined` / `#load-if-not-defined` branches cover civ, map, difficulty, and mode specialization.
+
+The monolithic Barbarian file itself was too large for the connector's text endpoint during this pass; the six closures rely on the readable modular corpus and indexed excerpts, not an unsupported claim that the monolith was fully read.
+
+#### Rehoboam — 0/5
+
+Public community sources identify Rehoboam as a serious custom AI, but this audit did not locate a trustworthy public AoE2 `.per` source corpus. GitHub repository-name and code searches returned unrelated Rehoboam projects and no usable `Rehoboam.per` donor. Therefore no Rehoboam mechanism row is promoted.
+
+- [ ] Strategic planning.
+- [ ] Economy transitions.
+- [ ] Production arbitration.
+- [ ] Scouting/intelligence.
+- [ ] Military decision logic.
+
+#### The Duke — 3/4
+
+The public `tim-kos/the_duke_ai` repository exposes a modular `.per` controller with a central loader and named subsystem files.
+
+- [x] Economy and construction mechanisms — loader and source include `buildings`, `commodity`, `resource_control`, and `training_villagers` modules.
+- [x] Military organization — separate `attack`, `defense`, `military_parity`, `military`, `counter_units`, and target-selection modules.
+- [x] Reusable rule abstractions — named state goals, modular loading, one-shot `disable-self` initialization, and conditional module inclusion are repeatedly used.
+- [ ] Failure/recovery behavior — resignation/defense/late-game code exists, but no sufficiently explicit general failed-action recovery protocol was established.
+
+### D. Tooling Corpus — 5/7
 
 Closed:
 
@@ -66,10 +89,9 @@ Closed:
 - [x] Syntax-highlighting/command registries.
 - [x] Static symbol/dependency analyzers.
 - [x] Replay parsers/replay-analysis tooling.
-- [x] Runtime/debug tooling — existing AoE2DE AI debugging/AIDEBUG and replay-analysis work are already documented in the research corpus.
+- [x] Runtime/debug tooling.
 - [ ] Scenario/test harnesses where reliable — the previous automated scenario-loader path is intentionally retired; no replacement is being counted as closed.
-
-Online tooling remains reference material unless checked against the target installation.
+- [ ] Existing AI development libraries that expose engine facts/actions — useful public libraries exist, but this is not yet frozen as a Stock-Ai corpus artifact.
 
 ### E. Historical Corpus — 5/5
 
@@ -81,34 +103,11 @@ Closed at the reference-corpus level:
 - [x] Older expert-system explanations of goals/timers/SNs/escrow/load behavior.
 - [x] Historical command/fact/action lists and community references.
 
-Historical sources are explicitly non-authoritative for current-DE semantics. Current official release history is used only as versioned reference evidence.
-
 ### F. Runtime Evidence Corpus — 0/16
 
-No F-item is closed in this audit. This is intentional. Source evidence and online references do not substitute for controlled current-DE runtime evidence.
-
-The following remain OPEN/UNKNOWN:
-
-- [ ] Minimal parser/load test.
-- [ ] One-shot rule test.
-- [ ] Persistent-rule test.
-- [ ] Rule-order test.
-- [ ] Multiple-rule firing test.
-- [ ] Goal write/read test.
-- [ ] Timer test.
-- [ ] Strategic-number write/read test.
-- [ ] Production command acceptance/completion test.
-- [ ] Construction start/completion test.
-- [ ] Technology start/completion test.
-- [ ] Resource/escrow reservation test.
-- [ ] Unit-task assignment test.
-- [ ] Rule disable/re-enable behavior test.
-- [ ] Conditional-load test.
-- [ ] Failure/error behavior test.
+No F-item is closed in this audit. Source evidence and online references do not substitute for controlled current-DE runtime evidence.
 
 ### G. Corpus Rules — 8/8
-
-These are already established as project operating rules:
 
 - [x] Freeze before interpretation.
 - [x] Preserve originals.
@@ -123,6 +122,14 @@ These are already established as project operating rules:
 
 - [x] `ENGINE_ABI_MATRIX_v0.1` exists and is populated.
 
+## Current closure math
+
+**A 0 + B 15 + C 17 + D 5 + E 5 + F 0 + G 8 + H 1 = 51 closed.**
+
+**11 + 17 + 25 + 7 + 5 + 16 + 8 + 1 = 90 total.**
+
+Therefore the defensible current corpus position is **51/90 (56.7%)**.
+
 ## What remains before Checklist 0–1 can close
 
 1. Freeze the exact target AoE2DE installation corpus and hashes inside Stock-Ai-.
@@ -130,8 +137,9 @@ These are already established as project operating rules:
 3. Complete goal ownership and SN ownership/range/default/side-effect mapping.
 4. Finish loader/conditional-load and parser/error contract boundaries.
 5. Isolate scouting and civilization-policy ownership in the source corpus.
-6. Extract Barbarian, Rehoboam, and The Duke mechanisms where they add distinct engineering evidence.
-7. Keep all runtime-semantic questions explicitly OPEN until independently established.
+6. Acquire a trustworthy Rehoboam source corpus before extracting its mechanisms.
+7. Decide whether a distinct AI development library adds enough evidence to close D7.
+8. Keep all runtime-semantic questions explicitly OPEN until independently established.
 
 ## Current architecture gate
 
@@ -145,8 +153,8 @@ These are already established as project operating rules:
 
 ## Important retrieval-integrity finding
 
-The GitHub tree records a non-empty Git object for `AI (HD version).per`, but the repository contents retrieval used during this audit did not return usable textual content for that path. Therefore the file is **not being treated as readable corpus evidence yet**. This is a Git retrieval/integrity item to resolve before using that donor file as a primary source.
+The GitHub tree records a non-empty Git object for `AI (HD version).per`, but the repository contents retrieval used during the earlier corpus audit did not return usable textual content for that path. Therefore the file is **not** being treated as readable corpus evidence yet. This remains a retrieval-integrity item to resolve before using that donor file as a primary source.
 
 ## Bottom line
 
-**41/87 corpus checklist items are defensibly closable now.** The work is roughly halfway through the research/corpus gate, but not halfway through building the AI. The remaining work is concentrated in exact current-engine acquisition, subsystem ownership/mapping, distinct donor extraction, and runtime semantics. No architecture should be declared complete merely because the source corpus is large.
+The mature-AI pass materially advances the corpus: Barbarian is now fully closed at the six-row mechanism level, The Duke is closed on three of four rows, and Rehoboam remains intentionally unpromoted because its actual source was not recovered. The corrected checklist arithmetic puts Stock-Ai at **51 of 90 corpus items closed (56.7%)**, not the earlier 41 of 87 figure. That correction is itself important forensic hygiene: checklist cardinality must come from the actual current checklist, not a stale summary. None of this changes the runtime-semantic gate. Source mechanisms can tell us what a donor tried to make the engine do; they do not prove what the current engine actually did.
