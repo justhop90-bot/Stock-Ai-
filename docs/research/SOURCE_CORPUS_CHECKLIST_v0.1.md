@@ -28,22 +28,22 @@ Acquire from the exact AoE2DE installation/build used for Stock-Ai-:
 
 Inventory the complete stock/Promi system, not selected interesting files:
 
-- [ ] Main loader chain.
-- [ ] Constants and shared symbols.
-- [ ] General state/control logic.
-- [ ] Economy and worker management.
-- [ ] Construction/building logic.
-- [ ] Technology/research logic.
-- [ ] Production logic.
+- [x] Main loader chain.
+- [x] Constants and shared symbols.
+- [x] General state/control logic.
+- [x] Economy and worker management.
+- [x] Construction/building logic.
+- [x] Technology/research logic.
+- [x] Production logic.
 - [ ] Scouting.
-- [ ] Military behavior.
-- [ ] Attack/defense state handling.
-- [ ] Strategic-number writers.
-- [ ] Goal writers.
-- [ ] Timer writers.
-- [ ] Escrow/reservation logic.
+- [x] Military behavior.
+- [x] Attack/defense state handling.
+- [x] Strategic-number writers.
+- [x] Goal writers.
+- [x] Timer writers.
+- [x] Escrow/reservation logic.
 - [ ] Civilization-specific policy.
-- [ ] Conditional-load branches.
+- [x] Conditional-load branches.
 
 For every subsystem, record **inputs, outputs, writers, dependencies, load order, release paths, and observed purpose**.
 
@@ -53,23 +53,23 @@ Study strong implementations as engineering specimens. Do not copy architecture 
 
 ### Shadow
 
-- [ ] Loader architecture.
-- [ ] Escrow and commitment state.
-- [ ] Build progression.
-- [ ] Priority arbitration.
-- [ ] Release/cancellation paths.
-- [ ] Military state management.
-- [ ] Recovery behavior.
-- [ ] Static tooling/parsers.
+- [x] Loader architecture.
+- [x] Escrow and commitment state.
+- [x] Build progression.
+- [x] Priority arbitration.
+- [x] Release/cancellation paths.
+- [x] Military state management.
+- [x] Recovery behavior.
+- [x] Static tooling/parsers.
 
 ### Barbarian
 
-- [ ] Economy control.
-- [ ] Build-order abstraction.
-- [ ] Production/composition logic.
-- [ ] Military planning.
-- [ ] Strategic-number usage.
-- [ ] Conditional/civilization behavior.
+- [x] Economy control.
+- [x] Build-order abstraction.
+- [x] Production/composition logic.
+- [x] Military planning.
+- [x] Strategic-number usage.
+- [x] Conditional/civilization behavior.
 
 ### Rehoboam
 
@@ -79,11 +79,13 @@ Study strong implementations as engineering specimens. Do not copy architecture 
 - [ ] Scouting/intelligence.
 - [ ] Military decision logic.
 
+**Rehoboam evidence status:** public community references establish that Rehoboam is a serious custom AI, but no trustworthy public AoE2 `.per` source corpus was located in this audit. No Rehoboam mechanism row is promoted without primary source evidence.
+
 ### The Duke
 
-- [ ] Economy and construction mechanisms.
-- [ ] Military organization.
-- [ ] Reusable rule abstractions.
+- [x] Economy and construction mechanisms.
+- [x] Military organization.
+- [x] Reusable rule abstractions.
 - [ ] Failure/recovery behavior.
 
 ### Other serious AIs
@@ -94,27 +96,27 @@ Add only implementations that provide a distinct mechanism or useful counterexam
 
 The AI itself is only half the engineering problem. We also need tools that can tell us when the script is lying.
 
-- [ ] AoE2 AI parser/linter implementations.
-- [ ] Syntax-highlighting/command registries.
-- [ ] Static symbol/dependency analyzers.
-- [ ] Replay parsers and replay-analysis tooling.
-- [ ] Runtime/debug tooling.
+- [x] AoE2 AI parser/linter implementations.
+- [x] Syntax-highlighting/command registries.
+- [x] Static symbol/dependency analyzers.
+- [x] Replay parsers and replay-analysis tooling.
+- [x] Runtime/debug tooling.
 - [ ] Scenario/test harnesses where reliable.
 - [ ] Existing AI development libraries that expose engine facts/actions.
 
-The public AoE2 AI parser ecosystem is useful for identifying command families and syntax, but its registries remain reference material until checked against the current DE installation. citeturn0search8turn0search1
+The public AoE2 AI parser ecosystem is useful for identifying command families and syntax, but its registries remain reference material until checked against the current DE installation.
 
 ## E. Historical Corpus
 
 Historical documentation is useful for understanding semantics that the modern documentation may not explain well:
 
-- [ ] Computer Player Strategy Builder documentation.
-- [ ] Classic AoE2 AI scripting guides.
-- [ ] UserPatch/HD scripting references.
-- [ ] Older expert-system explanations.
-- [ ] Historical command/fact/action lists.
+- [x] Computer Player Strategy Builder documentation.
+- [x] Classic AoE2 AI scripting guides.
+- [x] UserPatch/HD scripting references.
+- [x] Older expert-system explanations.
+- [x] Historical command/fact/action lists.
 
-These sources explain lineage and can expose concepts such as rule lifetime, facts/actions, strategic numbers, goals, timers, escrow, and conditional loading. They are **not** sufficient evidence for current-DE behavior by themselves. citeturn0search27turn0search4turn0search7
+These sources explain lineage and can expose concepts such as rule lifetime, facts/actions, strategic numbers, goals, timers, escrow, and conditional loading. They are **not** sufficient evidence for current-DE behavior by themselves.
 
 ## F. Runtime Evidence Corpus
 
