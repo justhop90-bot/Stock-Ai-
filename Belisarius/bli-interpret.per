@@ -1,0 +1,243 @@
+; Belisarius bli-interpret.per — Prompt 3 INTERPRETATION + OPPONENT MODEL.
+; Facts -> meaning. Never single-trigger where combined evidence exists.
+; Levels: 0 none, 1 light, 2 meaningful, 3 heavy. Confidence rises only with corroboration.
+
+; ================= CAVALRY INVESTMENT =================
+; heavy: 2+ stables, or 3+ knights visible, or stable+knights+blacksmith together.
+(defrule
+  (or (players-building-type-count any-enemy stable >= 2)
+    (or (players-unit-type-count any-enemy knight-line >= 3)
+      (and (up-compare-goal bli-em-stable == bli-yes)
+        (and (up-compare-goal bli-em-knight == bli-yes)
+          (players-building-type-count any-enemy blacksmith >= 1)))))
+=>
+  (set-goal bli-int-cav bli-inv-heavy))
+; meaningful: stable+knights corroborated, or stable+blacksmith enabling (no knights yet).
+; Excluded when heavy conditions hold (single stable, at most 2 knights visible).
+(defrule
+  (up-compare-goal bli-em-stable == bli-yes)
+  (up-compare-goal bli-em-knight == bli-yes)
+  (players-building-type-count any-enemy stable <= 1)
+  (players-unit-type-count any-enemy knight-line <= 2)
+=>
+  (set-goal bli-int-cav bli-inv-meaningful))
+(defrule
+  (up-compare-goal bli-em-stable == bli-yes)
+  (up-compare-goal bli-em-knight == bli-no)
+  (players-building-type-count any-enemy blacksmith >= 1)
+  (players-building-type-count any-enemy stable <= 1)
+=>
+  (set-goal bli-int-cav bli-inv-meaningful))
+; light: lone stable without enabling, or lone knight sighting without production.
+(defrule
+  (up-compare-goal bli-em-stable == bli-yes)
+  (up-compare-goal bli-em-knight == bli-no)
+  (players-building-type-count any-enemy blacksmith <= 0)
+  (players-building-type-count any-enemy stable <= 1)
+=>
+  (set-goal bli-int-cav bli-inv-light))
+(defrule
+  (up-compare-goal bli-em-stable == bli-no)
+  (up-compare-goal bli-em-knight == bli-yes)
+=>
+  (set-goal bli-int-cav bli-inv-light))
+; none: nothing seen at all.
+(defrule
+  (up-compare-goal bli-em-stable == bli-no)
+  (up-compare-goal bli-em-knight == bli-no)
+=>
+  (set-goal bli-int-cav bli-inv-none))
+
+; ================= ARCHER INVESTMENT =================
+(defrule
+  (or (players-building-type-count any-enemy archery-range >= 2)
+    (or (players-unit-type-count any-enemy archer-line >= 5)
+      (and (up-compare-goal bli-em-range == bli-yes)
+        (and (up-compare-goal bli-em-archer == bli-yes)
+          (players-building-type-count any-enemy blacksmith >= 1)))))
+=>
+  (set-goal bli-int-archer bli-inv-heavy))
+(defrule
+  (up-compare-goal bli-em-range == bli-yes)
+  (up-compare-goal bli-em-archer == bli-yes)
+  (players-building-type-count any-enemy archery-range <= 1)
+  (players-unit-type-count any-enemy archer-line <= 4)
+=>
+  (set-goal bli-int-archer bli-inv-meaningful))
+(defrule
+  (up-compare-goal bli-em-range == bli-yes)
+  (up-compare-goal bli-em-archer == bli-no)
+  (players-building-type-count any-enemy blacksmith >= 1)
+  (players-building-type-count any-enemy archery-range <= 1)
+=>
+  (set-goal bli-int-archer bli-inv-meaningful))
+(defrule
+  (up-compare-goal bli-em-range == bli-yes)
+  (up-compare-goal bli-em-archer == bli-no)
+  (players-building-type-count any-enemy blacksmith <= 0)
+  (players-building-type-count any-enemy archery-range <= 1)
+=>
+  (set-goal bli-int-archer bli-inv-light))
+(defrule
+  (up-compare-goal bli-em-range == bli-no)
+  (up-compare-goal bli-em-archer == bli-yes)
+=>
+  (set-goal bli-int-archer bli-inv-light))
+(defrule
+  (up-compare-goal bli-em-range == bli-no)
+  (up-compare-goal bli-em-archer == bli-no)
+=>
+  (set-goal bli-int-archer bli-inv-none))
+
+; ================= INFANTRY INVESTMENT =================
+; A single Barracks with occasional Militia is light; multi-Barracks + mass is heavy.
+(defrule
+  (or (players-building-type-count any-enemy barracks >= 2)
+    (or (players-unit-type-count any-enemy militiaman-line >= 4)
+      (players-unit-type-count any-enemy spearman-line >= 4)))
+=>
+  (set-goal bli-int-inf bli-inv-heavy))
+(defrule
+  (up-compare-goal bli-em-barracks == bli-yes)
+  (or (players-unit-type-count any-enemy militiaman-line >= 1)
+    (players-unit-type-count any-enemy spearman-line >= 1))
+  (players-building-type-count any-enemy barracks <= 1)
+  (players-unit-type-count any-enemy militiaman-line <= 3)
+  (players-unit-type-count any-enemy spearman-line <= 3)
+=>
+  (set-goal bli-int-inf bli-inv-meaningful))
+(defrule
+  (up-compare-goal bli-em-barracks == bli-yes)
+  (players-unit-type-count any-enemy militiaman-line <= 0)
+  (players-unit-type-count any-enemy spearman-line <= 0)
+=>
+  (set-goal bli-int-inf bli-inv-light))
+(defrule
+  (up-compare-goal bli-em-barracks == bli-no)
+=>
+  (set-goal bli-int-inf bli-inv-none))
+
+; ================= SIEGE / CASTLE / FORWARD (default + trigger, no flap) =================
+(defrule
+  (up-compare-goal bli-em-siege == bli-no)
+  (up-compare-goal bli-em-forward == bli-no)
+=>
+  (set-goal bli-int-siege-pressure bli-no))
+(defrule
+  (up-compare-goal bli-em-siege == bli-yes)
+=>
+  (set-goal bli-int-siege-pressure bli-yes))
+(defrule
+  (up-compare-goal bli-em-forward == bli-yes)
+  (or (players-unit-type-count any-enemy battering-ram-line >= 1)
+    (or (players-unit-type-count any-enemy mangonel-line >= 1)
+      (up-compare-goal bli-em-siege == bli-yes)))
+=>
+  (set-goal bli-int-siege-pressure bli-yes))
+(defrule
+  (up-compare-goal bli-em-castle == bli-no)
+=>
+  (set-goal bli-int-castle-plan bli-no))
+(defrule
+  (up-compare-goal bli-em-castle == bli-yes)
+=>
+  (set-goal bli-int-castle-plan bli-yes))
+(defrule
+  (up-compare-goal bli-em-forward == bli-no)
+=>
+  (set-goal bli-int-forward-pressure bli-no))
+(defrule
+  (up-compare-goal bli-em-forward == bli-yes)
+=>
+  (set-goal bli-int-forward-pressure bli-yes))
+
+; ================= OPPONENT MAIN HYPOTHESIS (exclusive ladder, strongest first) =================
+; both heavy -> mixed cavalry-led, strong (counter-counter case for later prompts).
+(defrule
+  (up-compare-goal bli-int-cav == bli-inv-heavy)
+  (up-compare-goal bli-int-archer == bli-inv-heavy)
+=>
+  (set-goal bli-opp-main bli-opp-cavalry)
+  (set-goal bli-opp-conf bli-conf-strong)
+  (set-goal bli-opp-mixed bli-yes))
+(defrule
+  (up-compare-goal bli-int-cav == bli-inv-heavy)
+  (up-compare-goal bli-int-archer != bli-inv-heavy)
+=>
+  (set-goal bli-opp-main bli-opp-cavalry)
+  (set-goal bli-opp-conf bli-conf-strong)
+  (set-goal bli-opp-mixed bli-no))
+(defrule
+  (up-compare-goal bli-int-archer == bli-inv-heavy)
+  (up-compare-goal bli-int-cav != bli-inv-heavy)
+=>
+  (set-goal bli-opp-main bli-opp-archers)
+  (set-goal bli-opp-conf bli-conf-strong)
+  (set-goal bli-opp-mixed bli-no))
+; forward siege pressure outranks home production (it decides where the fight happens).
+(defrule
+  (up-compare-goal bli-int-siege-pressure == bli-yes)
+  (up-compare-goal bli-int-forward-pressure == bli-yes)
+  (up-compare-goal bli-int-cav != bli-inv-heavy)
+  (up-compare-goal bli-int-archer != bli-inv-heavy)
+=>
+  (set-goal bli-opp-main bli-opp-siege)
+  (set-goal bli-opp-conf bli-conf-strong)
+  (set-goal bli-opp-mixed bli-no))
+; both meaningful -> the classic Knights + Archers behind case (§67): mixed, moderate.
+(defrule
+  (up-compare-goal bli-int-cav == bli-inv-meaningful)
+  (up-compare-goal bli-int-archer == bli-inv-meaningful)
+=>
+  (set-goal bli-opp-main bli-opp-cavalry)
+  (set-goal bli-opp-conf bli-conf-moderate)
+  (set-goal bli-opp-mixed bli-yes))
+(defrule
+  (up-compare-goal bli-int-cav == bli-inv-meaningful)
+  (up-compare-goal bli-int-archer != bli-inv-meaningful)
+  (up-compare-goal bli-int-archer != bli-inv-heavy)
+  (up-compare-goal bli-int-siege-pressure == bli-no)
+=>
+  (set-goal bli-opp-main bli-opp-cavalry)
+  (set-goal bli-opp-conf bli-conf-moderate)
+  (set-goal bli-opp-mixed bli-no))
+(defrule
+  (up-compare-goal bli-int-archer == bli-inv-meaningful)
+  (up-compare-goal bli-int-cav != bli-inv-meaningful)
+  (up-compare-goal bli-int-cav != bli-inv-heavy)
+  (up-compare-goal bli-int-siege-pressure == bli-no)
+=>
+  (set-goal bli-opp-main bli-opp-archers)
+  (set-goal bli-opp-conf bli-conf-moderate)
+  (set-goal bli-opp-mixed bli-no))
+(defrule
+  (or (up-compare-goal bli-int-inf == bli-inv-meaningful)
+    (up-compare-goal bli-int-inf == bli-inv-heavy))
+  (up-compare-goal bli-int-cav == bli-inv-none)
+  (up-compare-goal bli-int-archer == bli-inv-none)
+  (up-compare-goal bli-int-siege-pressure == bli-no)
+=>
+  (set-goal bli-opp-main bli-opp-infantry)
+  (set-goal bli-opp-conf bli-conf-moderate)
+  (set-goal bli-opp-mixed bli-no))
+(defrule
+  (up-compare-goal bli-int-castle-plan == bli-yes)
+  (up-compare-goal bli-int-cav == bli-inv-none)
+  (up-compare-goal bli-int-archer == bli-inv-none)
+  (up-compare-goal bli-int-inf == bli-inv-none)
+  (up-compare-goal bli-int-siege-pressure == bli-no)
+=>
+  (set-goal bli-opp-main bli-opp-castle)
+  (set-goal bli-opp-conf bli-conf-moderate)
+  (set-goal bli-opp-mixed bli-no))
+; default: weak evidence -> unknown, weak. Conservative response (Prompt 7+), not paralysis.
+(defrule
+  (up-compare-goal bli-int-cav == bli-inv-none)
+  (up-compare-goal bli-int-archer == bli-inv-none)
+  (up-compare-goal bli-int-inf == bli-inv-none)
+  (up-compare-goal bli-int-siege-pressure == bli-no)
+  (up-compare-goal bli-int-castle-plan == bli-no)
+=>
+  (set-goal bli-opp-main bli-opp-unknown)
+  (set-goal bli-opp-conf bli-conf-weak)
+  (set-goal bli-opp-mixed bli-no))

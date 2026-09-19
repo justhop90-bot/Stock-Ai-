@@ -1,0 +1,98 @@
+; Belisarius bli-hunt.per — ARBITRATION P2: Dark food lifecycle.
+; SHEEP -> BOAR -> FARMS, driven by the engine's native hunting behavior, not
+; villager move orders. Engine patches own luring, garrisoning, chasing, and
+; hunter assignment; this file owns WHEN: detect a usable boar, decide safety,
+; enable with real group sizes, recognize exhaustion, hand farms the era.
+; live-boar / deer-hunting are engine dropsite params (Naga uses them bare).
+
+; ================= ENABLE (usable boar known, eco ready to support it) =================
+; live-boar 0-34 means a real boar near a dropsite. -1 / 35+ means none known.
+; Both enables yield to the stop rule below (farms winning): the negation of
+; its conditions rides along so the SN can never flap within a pass.
+(defrule
+  (or (current-age == dark-age)
+    (current-age == feudal-age))
+  (up-compare-goal bli-boar-mode == bli-boar-sheep)
+  (unit-type-count-total villager >= 9)
+  (dropsite-min-distance live-boar >= 0)
+  (dropsite-min-distance live-boar < 35)
+  (or (building-type-count-total farm < 10)
+    (food-amount < 400))
+=>
+  (set-strategic-number sn-enable-boar-hunting 1)
+  (set-strategic-number sn-minimum-number-hunters 4)
+  (set-strategic-number sn-minimum-boar-lure-group-size 1)
+  (set-strategic-number sn-minimum-boar-hunt-group-size 6)
+  (set-strategic-number sn-maximum-hunt-drop-distance 30)
+  (set-goal bli-boar-mode bli-boar-hunting)
+  (up-modify-goal bli-boar-at g:= bli-game-time))
+; Late failsafe (Promisory pattern): by mid-Dark the era starts regardless,
+; covering deer and any boar the scout finds late.
+(defrule
+  (current-age == dark-age)
+  (up-compare-goal bli-boar-mode == bli-boar-sheep)
+  (or (unit-type-count-total villager >= 18)
+    (game-time > 420))
+  (or (building-type-count-total farm < 10)
+    (food-amount < 400))
+=>
+  (set-strategic-number sn-enable-boar-hunting 1)
+  (set-strategic-number sn-minimum-number-hunters 4)
+  (set-strategic-number sn-minimum-boar-lure-group-size 1)
+  (set-strategic-number sn-minimum-boar-hunt-group-size 6)
+  (set-strategic-number sn-maximum-hunt-drop-distance 30)
+  (set-goal bli-boar-mode bli-boar-hunting)
+  (up-modify-goal bli-boar-at g:= bli-game-time))
+
+; ================= EXHAUSTION (era over: farms own food now; latched) =================
+; Boar gone + mid game reached. Slightly early is harmless (cheap wood into
+; farms); never latching would starve the TC, so this errs toward farms.
+(defrule
+  (up-compare-goal bli-boar-mode == bli-boar-hunting)
+  (or (dropsite-min-distance live-boar >= 35)
+    (dropsite-min-distance live-boar < 0))
+  (unit-type-count-total villager >= 14)
+  (game-time >= 300)
+=>
+  (set-goal bli-boar-mode bli-boar-exhausted))
+
+; ================= STOP (C4: hunting ends when farmers win) =================
+; Hunters walking 30 tiles while 10+ farms stand and food floats is theater.
+; Park the engine hunting; hunger re-opens it.
+; Also stop if farm transition is active (Feudal transition prioritizes farms).
+(defrule
+  (building-type-count-total farm >= 10)
+  (food-amount >= 400)
+  (strategic-number sn-enable-boar-hunting == 1)
+=>
+  (set-strategic-number sn-enable-boar-hunting 0))
+(defrule
+  (up-compare-goal bli-farm-transition-state == bli-farm-transition-active)
+=>
+  (set-strategic-number sn-enable-boar-hunting 0))
+(defrule
+  (food-amount < 150)
+  (strategic-number sn-enable-boar-hunting == 0)
+  (up-compare-goal bli-boar-mode != bli-boar-sheep)
+=>
+  (set-strategic-number sn-enable-boar-hunting 1))
+
+; ================= FORECAST (C1: stockpile trend on the slow tick) =================
+; Income vs consumption, observed: a falling stockpile below 400 while the
+; hunters walk is the deer-trap made visible. Engine-safe goal math only.
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+=>
+  (up-modify-goal bli-food-delta g:= bli-food)
+  (up-modify-goal bli-food-delta g:- bli-food-prev)
+  (up-modify-goal bli-food-prev g:= bli-food))
+(defrule
+  (up-compare-goal bli-food-delta <= -26)
+  (up-compare-goal bli-food < 400)
+=>
+  (set-goal bli-food-falling bli-yes))
+(defrule
+  (or (up-compare-goal bli-food-delta g:>= bli-no)
+    (up-compare-goal bli-food >= 400))
+=>
+  (set-goal bli-food-falling bli-no))

@@ -1,0 +1,14 @@
+; Belisarius bli-team.per — Prompt 10 TEAM GAMES (§45, practical subset).
+; No perfect communication: share attack information and join allied attacks
+; through the engine's cooperation switches (Naga-proven), track the closest
+; enemy for focus (bli-pressure already re-targets as enemies fall). Full
+; coordinated-timing and sling play are deferred — flanks/pockets both play
+; the same sound contextual game, which is the correct fallback.
+
+(defrule
+  (true)
+=>
+  (set-strategic-number sn-coop-share-attacking 1)
+  (set-strategic-number sn-coop-share-attacking-interval 2)
+  (set-strategic-number sn-coop-share-information 1)
+  (disable-self))

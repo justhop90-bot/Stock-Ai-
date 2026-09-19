@@ -1,0 +1,348 @@
+; Belisarius bli-upgrades.per — Prompt 6 UPGRADES + POWER SPIKES (C5: transition-gated).
+; Authority: all military research + Imperial age-up. Eco research stays in bli-economy.
+; Upgrades fire when transition gates (bli-role-*) are active, not on boolean want flags.
+; Each upgrade requires its living line — never for an abandoned composition.
+
+; ================= FEUDAL COMPOSITION UPGRADES =================
+; Fletching: archer/skirm target exists
+; Respect Castle bank protection.
+(defrule
+  (can-research ri-fletching)
+  (or (up-compare-goal bli-target-archer c:> 0)
+    (up-compare-goal bli-target-skirm c:> 0))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-fletching))
+
+; Padded Archer Armor: archer/skirm target exists
+; Respect Castle bank protection.
+(defrule
+  (can-research ri-padded-archer-armor)
+  (or (up-compare-goal bli-target-archer c:> 0)
+    (up-compare-goal bli-target-skirm c:> 0))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-padded-archer-armor))
+
+; Forging: spear/scout/knight target exists
+; Respect Castle bank protection.
+(defrule
+  (can-research ri-forging)
+  (or (up-compare-goal bli-target-spear c:> 0)
+    (or (up-compare-goal bli-target-mobile c:> 0)
+      (up-compare-goal bli-target-knight c:> 0)))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-forging))
+
+; Scale Mail: spear target exists, not fast-castle starving
+; Respect Castle bank protection.
+(defrule
+  (can-research ri-scale-mail)
+  (up-compare-goal bli-target-spear c:> 0)
+  (or (up-compare-goal bli-strategy != bli-strat-fast-castle)
+    (food-amount >= 800))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-scale-mail))
+
+; ================= CASTLE COMPOSITION UPGRADES =================
+; Gated on bank: no expensive tech from committed resources.
+; Role-based: upgrades follow transition gates, not boolean wants.
+; Respect Castle bank protection.
+
+; Bodkin Arrow: archer→xbow transition active
+(defrule
+  (current-age == castle-age)
+  (can-research ri-bodkin-arrow)
+  (up-compare-goal bli-role-archer-to-xbow == bli-yes)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-food >= 300))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-bodkin-arrow))
+
+; Iron Casting: spear→halb transition active OR knight line active
+(defrule
+  (current-age == castle-age)
+  (can-research ri-iron-casting)
+  (or (up-compare-goal bli-role-spear-to-halb == bli-yes)
+    (up-compare-goal bli-target-knight c:> 0))
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-food >= 300))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-iron-casting))
+
+; Chain Mail: spear→halb transition active (role relevance, not just want)
+(defrule
+  (current-age == castle-age)
+  (can-research ri-chain-mail)
+  (up-compare-goal bli-role-spear-to-halb == bli-yes)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-food >= 300))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-chain-mail))
+
+; Bloodlines: mobility transition active OR knight line active
+(defrule
+  (current-age == castle-age)
+  (can-research ri-bloodlines)
+  (or (up-compare-goal bli-role-scout-to-lightcav == bli-yes)
+    (or (up-compare-goal bli-target-knight c:> 0)
+      (up-compare-goal bli-target-mobile c:> 0)))
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-food >= 300))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-bloodlines))
+
+; Husbandry: same as bloodlines
+(defrule
+  (current-age == castle-age)
+  (can-research ri-husbandry)
+  (or (up-compare-goal bli-role-scout-to-lightcav == bli-yes)
+    (or (up-compare-goal bli-target-knight c:> 0)
+      (up-compare-goal bli-target-mobile c:> 0)))
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-food >= 300))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-husbandry))
+
+; Ballistics: archer→xbow transition + mass threshold
+; Respect Castle bank protection. Also require University (prerequisite).
+(defrule
+  (current-age == castle-age)
+  (can-research ri-ballistics)
+  (up-compare-goal bli-role-archer-to-xbow == bli-yes)
+  (unit-type-count-total archer-line >= 8)
+  (building-type-count-total university >= 1)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-food >= 300))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-ballistics))
+
+; ================= IMPERIAL COMPOSITION (convert stored capital) =================
+; All Imperial-gated: post-bank by construction. Requires living line.
+; Respect Castle bank protection.
+
+; Squires: spear mass exists + halb transition or mobility need
+(defrule
+  (current-age == castle-age)
+  (can-research ri-squires)
+  (unit-type-count-total spearman-line >= 4)
+  (or (up-compare-goal bli-role-spear-to-halb == bli-yes)
+    (up-compare-goal bli-target-mobile c:> 0))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-squires))
+
+; Halberdier: spear→halb transition active + sufficient mass
+; Respect Castle bank protection.
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-halberdier)
+  (up-compare-goal bli-role-spear-to-halb == bli-yes)
+  (unit-type-count-total spearman-line >= 6)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-halberdier))
+
+; Elite Skirmisher: skirm→elite transition active + mass
+; Respect Castle bank protection.
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-elite-skirmisher)
+  (up-compare-goal bli-role-skirm-to-elite == bli-yes)
+  (unit-type-count-total skirmisher-line >= 6)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-elite-skirmisher))
+
+; Arbalest: archer→arbalest transition active + mass
+; Respect Castle bank protection.
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-arbalest)
+  (up-compare-goal bli-role-archer-to-arbalest == bli-yes)
+  (unit-type-count-total archer-line >= 8)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-arbalest))
+
+; Chemistry: university + archer line worth upgrading
+; Respect Castle bank protection.
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-chemistry)
+  (building-type-count-total university >= 1)
+  (up-compare-goal bli-target-archer c:> 0)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-chemistry))
+
+; Light Cavalry: scout→lightcav transition active + riders standing
+; Respect Castle bank protection.
+(defrule
+  (current-age == castle-age)
+  (can-research ri-light-cavalry)
+  (up-compare-goal bli-role-scout-to-lightcav == bli-yes)
+  (unit-type-count-total scout-cavalry-line >= 3)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-food >= 300))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-light-cavalry))
+
+; Hussar: lightcav→hussar transition active + mass
+; Respect Castle bank protection.
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-hussar)
+  (up-compare-goal bli-role-lightcav-to-hussar == bli-yes)
+  (unit-type-count-total light-cavalry >= 4)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-hussar))
+
+; Heavy Camel: camel→heavy camel transition active + mass
+; Byzantine unique upgrade
+; Respect Castle bank protection.
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-heavy-camel)
+  (up-compare-goal bli-target-camel c:> 0)
+  (unit-type-count-total camel-line >= 4)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-heavy-camel))
+
+; Logistica: Cataphract mass + gold stockpile + population scale
+; Respect Castle bank protection.
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-logistica)
+  (up-compare-goal bli-target-cata c:> 0)
+  (unit-type-count-total cataphract-line >= 6)
+  (gold-amount > 800)
+  (population >= 100)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-logistica))
+
+; Siege Engineers: siege workshop + siege units justify the investment
+; Respect Castle bank protection.
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-siege-engineers)
+  (building-type-count-total siege-workshop >= 1)
+  (or (up-compare-goal bli-target-siege c:> 0)
+    (or (unit-type-count-total mangonel-line >= 2)
+      (unit-type-count-total battering-ram-line >= 2)))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-siege-engineers))
+
+; Architecture: castle + stone economy justify the investment
+; Respect Castle bank protection.
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-architecture)
+  (building-type-count-total castle >= 1)
+  (or (building-type-count-total watch-tower >= 2)
+    (building-type-count-total town-center >= 2))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-architecture))
+
+; ================= IMPERIAL AGE-UP (timing, not automatic) =================
+; Advance when economy supports it and army survives the cost.
+; Use escrow pattern like Castle: commit → can-research-with-escrow → release-escrow → research
+; Respect Castle bank protection during transition.
+(defrule
+  (current-age == castle-age)
+  (can-research imperial-age)
+  (can-research-with-escrow imperial-age)
+  (unit-type-count-total villager >= 55)
+  (up-compare-goal bli-enemy-in-town == bli-no)
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-commit-id == bli-commit-imperial)
+  (up-compare-goal bli-imperial-state == bli-imperial-state-researchable)
+=>
+  (set-goal bli-imperial-state bli-imperial-state-researching)
+  (release-escrow food)
+  (release-escrow gold)
+  (research imperial-age))
+(defrule
+  (current-age == castle-age)
+  (can-research imperial-age)
+  (can-research-with-escrow imperial-age)
+  (unit-type-count-total villager >= 65)
+  (military-population >= 10)
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-commit-id == bli-commit-imperial)
+  (up-compare-goal bli-imperial-state == bli-imperial-state-researchable)
+=>
+  (set-goal bli-imperial-state bli-imperial-state-researching)
+  (release-escrow food)
+  (release-escrow gold)
+  (research imperial-age))
+(defrule
+  (current-age == castle-age)
+  (can-research imperial-age)
+  (unit-type-count-total villager >= 65)
+  (military-population >= 10)
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-commit-id == bli-commit-imperial)
+=>
+  (research imperial-age))
+
+; ================= OWN POWER SPIKE FLAG (consumed by Prompt 7 tactics) =================
+(defrule
+  (current-age-time < 180)
+  (or (current-age == castle-age)
+    (current-age == imperial-age))
+  (military-population >= 10)
+=>
+  (set-goal bli-power-own bli-yes))
+(defrule
+  (research-completed ri-bodkin-arrow)
+  (research-completed ri-ballistics)
+  (unit-type-count-total archer-line >= 10)
+=>
+  (set-goal bli-power-own bli-yes))
+(defrule
+  (current-age-time >= 180)
+  (or (research-completed ri-bodkin-arrow)
+    (research-completed ri-ballistics))
+  (unit-type-count-total archer-line < 10)
+  (military-population < 10)
+=>
+  (set-goal bli-power-own bli-no))
+
+; ================= SIEGE ENGINEERS / ARCHITECTURE (Imperial) =================
+; Siege Engineers: siege workshop + siege units justify the investment
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-siege-engineers)
+  (building-type-count-total siege-workshop >= 1)
+  (or (up-compare-goal bli-target-siege c:> 0)
+    (or (unit-type-count-total mangonel-line >= 2)
+      (unit-type-count-total battering-ram-line >= 2)))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-siege-engineers))
+
+; Architecture: castle + stone economy justify the investment
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-architecture)
+  (building-type-count-total castle >= 1)
+  (or (building-type-count-total watch-tower >= 2)
+    (building-type-count-total town-center >= 2))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-architecture))

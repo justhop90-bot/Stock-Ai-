@@ -1,0 +1,279 @@
+; Belisarius bli-strategy.per — Prompt 4 STRATEGY SELECTION + DEVIATION.
+; Authority: this file alone owns bli-strategy. No other file may set it.
+; Initial choice is contextual (map + Byzantine identity). Changes require
+; moderate+ evidence and a different target (no oscillation on minor events).
+; Byzantine bias: defensive strength buys time; cheap counters; Cataphracts
+; situational only (never a default strategy here).
+
+; ================= MAP CONTEXT (reliable subset; water/hybrid full logic in Prompt 10) =================
+; michi-style omitted: not a known DE identifier (legacy UP const).
+(defrule
+  (or (map-type arena)
+    (or (map-type fortress)
+      (map-type black-forest)))
+=>
+  (set-goal bli-map-closed bli-yes))
+; Nomad is a load-time symbol in DE (UP-NOMAD-STYLE), not a runtime const.
+#load-if-defined UP-NOMAD-STYLE
+(defrule
+  (true)
+=>
+  (set-goal bli-map-nomad bli-yes)
+  (disable-self))
+#end-if
+
+; ================= INITIAL SELECTION (strategy unset, game start) =================
+; Closed: boom behind walls — Byzantine walls/defense + boom scale.
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-unset)
+  (up-compare-goal bli-map-closed == bli-yes)
+  (game-time < 120)
+=>
+  (set-goal bli-strategy bli-strat-defensive-boom))
+; Nomad: survive the start, no fixed water commitment without evidence.
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-unset)
+  (up-compare-goal bli-map-nomad == bli-yes)
+  (game-time < 120)
+=>
+  (set-goal bli-strategy bli-strat-defensive-feudal))
+; Open land default: scout pressure — mobile, gathers info, forces reactions,
+; transitions naturally into Byzantine counter play. Not a commitment to stay.
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-unset)
+  (up-compare-goal bli-map-closed == bli-no)
+  (up-compare-goal bli-map-nomad == bli-no)
+  (game-time < 120)
+=>
+  (set-goal bli-strategy bli-strat-scout-pressure))
+; Feudal entry: if no military branch established and no Castle commitment, pick one
+; based on current evidence. This prevents the "Feudal void" with 2k wood / 0 army.
+; Archer evidence -> ranged defense branch (skirms + spears)
+(defrule
+  (up-compare-goal bli-age-snap == bli-age-feudal)
+  (up-compare-goal bli-age-prev != bli-age-feudal)
+  (up-compare-goal bli-target-spear c:< 1)
+  (up-compare-goal bli-target-skirm c:< 1)
+  (up-compare-goal bli-target-archer c:< 1)
+  (up-compare-goal bli-target-scout c:< 1)
+  (up-compare-goal bli-target-mobile c:< 1)
+  (up-compare-goal bli-commit-id != bli-commit-castle)
+  (up-compare-goal bli-int-archer != bli-inv-none)
+  (up-compare-goal bli-int-cav == bli-inv-none)
+=>
+  (set-goal bli-strategy bli-strat-ranged-defense)
+  (set-goal bli-deviated bli-yes))
+; Cavalry evidence -> knight branch
+(defrule
+  (up-compare-goal bli-age-snap == bli-age-feudal)
+  (up-compare-goal bli-age-prev != bli-age-feudal)
+  (up-compare-goal bli-target-spear c:< 1)
+  (up-compare-goal bli-target-skirm c:< 1)
+  (up-compare-goal bli-target-archer c:< 1)
+  (up-compare-goal bli-target-scout c:< 1)
+  (up-compare-goal bli-target-mobile c:< 1)
+  (up-compare-goal bli-commit-id != bli-commit-castle)
+  (up-compare-goal bli-int-cav != bli-inv-none)
+  (up-compare-goal bli-int-archer == bli-inv-none)
+=>
+  (set-goal bli-strategy bli-strat-knight-play)
+  (set-goal bli-deviated bli-yes))
+; Mixed evidence -> defensive feudal (spears + skirms)
+(defrule
+  (up-compare-goal bli-age-snap == bli-age-feudal)
+  (up-compare-goal bli-age-prev != bli-age-feudal)
+  (up-compare-goal bli-target-spear c:< 1)
+  (up-compare-goal bli-target-skirm c:< 1)
+  (up-compare-goal bli-target-archer c:< 1)
+  (up-compare-goal bli-target-scout c:< 1)
+  (up-compare-goal bli-target-mobile c:< 1)
+  (up-compare-goal bli-commit-id != bli-commit-castle)
+  (or (up-compare-goal bli-int-archer != bli-inv-none)
+    (up-compare-goal bli-int-cav != bli-inv-none))
+=>
+  (set-goal bli-strategy bli-strat-defensive-feudal)
+  (set-goal bli-deviated bli-yes))
+; Feudal entry with no enemy evidence: default to scout pressure for map control
+(defrule
+  (up-compare-goal bli-age-snap == bli-age-feudal)
+  (up-compare-goal bli-age-prev != bli-age-feudal)
+  (up-compare-goal bli-target-spear c:< 1)
+  (up-compare-goal bli-target-skirm c:< 1)
+  (up-compare-goal bli-target-archer c:< 1)
+  (up-compare-goal bli-target-scout c:< 1)
+  (up-compare-goal bli-target-mobile c:< 1)
+  (up-compare-goal bli-commit-id != bli-commit-castle)
+  (up-compare-goal bli-int-archer == bli-inv-none)
+  (up-compare-goal bli-int-cav == bli-inv-none)
+=>
+  (set-goal bli-strategy bli-strat-scout-pressure)
+  (set-goal bli-deviated bli-yes))
+; ================= JUSTIFIED DEVIATION (reactive, evidence-gated) =================
+; Forward siege pressure invalidates any greedy plan: survive first.
+(defrule
+  (up-compare-goal bli-int-forward-pressure == bli-yes)
+  (up-compare-goal bli-int-siege-pressure == bli-yes)
+  (up-compare-goal bli-opp-conf >= bli-conf-moderate)
+  (up-compare-goal bli-strategy != bli-strat-defensive-feudal)
+=>
+  (set-goal bli-strategy bli-strat-defensive-feudal)
+  (set-goal bli-deviated bli-yes))
+; Heavy cavalry invalidates pure archer pressure (archers alone die to mass knights).
+(defrule
+  (up-compare-goal bli-int-cav == bli-inv-heavy)
+  (up-compare-goal bli-opp-conf >= bli-conf-moderate)
+  (up-compare-goal bli-strategy == bli-strat-archer-pressure)
+=>
+  (set-goal bli-strategy bli-strat-defensive-feudal)
+  (set-goal bli-deviated bli-yes))
+; Meaningful archers invalidate pure scout pressure (scouts feed spears+archers).
+; Lowered threshold from heavy to meaningful for faster counter response.
+(defrule
+  (up-compare-goal bli-int-archer == bli-inv-meaningful)
+  (up-compare-goal bli-opp-conf >= bli-conf-moderate)
+  (up-compare-goal bli-strategy == bli-strat-scout-pressure)
+=>
+  (set-goal bli-strategy bli-strat-ranged-defense)
+  (set-goal bli-deviated bli-yes))
+; Heavy archers also force ranged defense from other strategies
+(defrule
+  (up-compare-goal bli-int-archer == bli-inv-heavy)
+  (up-compare-goal bli-opp-conf >= bli-conf-moderate)
+  (up-compare-goal bli-strategy == bli-strat-scout-pressure)
+=>
+  (set-goal bli-strategy bli-strat-ranged-defense)
+  (set-goal bli-deviated bli-yes))
+; Heavy cavalry forces defensive feudal from ranged defense
+(defrule
+  (up-compare-goal bli-int-cav == bli-inv-heavy)
+  (up-compare-goal bli-opp-conf >= bli-conf-moderate)
+  (up-compare-goal bli-strategy == bli-strat-ranged-defense)
+=>
+  (set-goal bli-strategy bli-strat-defensive-feudal)
+  (set-goal bli-deviated bli-yes))
+; Quiet Feudal with Castle timing predicted: match it, do not sit in Feudal.
+(defrule
+  (up-compare-goal bli-pred-castle-age == bli-yes)
+  (up-compare-goal bli-opp-conf <= bli-conf-moderate)
+  (or (up-compare-goal bli-strategy == bli-strat-scout-pressure)
+    (or (up-compare-goal bli-strategy == bli-strat-archer-pressure)
+      (up-compare-goal bli-strategy == bli-strat-defensive-feudal)))
+  (game-time >= 600)
+  (game-time < 1200)
+=>
+  (set-goal bli-strategy bli-strat-fast-castle)
+  (set-goal bli-deviated bli-yes))
+; Enemy castle plan confirmed while we fast-castle: contest with castle pressure.
+(defrule
+  (up-compare-goal bli-int-castle-plan == bli-yes)
+  (up-compare-goal bli-strategy == bli-strat-fast-castle)
+=>
+  (set-goal bli-strategy bli-strat-castle-pressure)
+  (set-goal bli-deviated bli-yes))
+
+; ================= ABANDONMENT + LATE GAME (Prompt 9: §36, §37, §42, §43) =================
+; Gold scarcity makes gold armies unsustainable: Byzantines fall back on
+; efficient trash rather than pretending the gold economy still exists.
+(defrule
+  (current-age == imperial-age)
+  (gold-amount < 300)
+  (up-compare-goal bli-strategy != bli-strat-trash-transition)
+=>
+  (set-goal bli-strategy bli-strat-trash-transition)
+  (set-goal bli-deviated bli-yes))
+(defrule
+  (current-age == castle-age)
+  (game-time >= 2100)
+  (gold-amount < 100)
+  (unit-type-count-total villager >= 60)
+  (up-compare-goal bli-strategy != bli-strat-trash-transition)
+=>
+  (set-goal bli-strategy bli-strat-trash-transition)
+  (set-goal bli-deviated bli-yes))
+; Winning conversion (§40): spike + real army + readable enemy -> press with
+; castle pressure instead of sitting on the advantage. Never from trash.
+(defrule
+  (up-compare-goal bli-power-own == bli-yes)
+  (military-population >= 20)
+  (current-age == castle-age)
+  (up-compare-goal bli-enemy-located == bli-yes)
+  (up-compare-goal bli-opp-conf <= bli-conf-moderate)
+  (up-compare-goal bli-strategy != bli-strat-castle-pressure)
+  (up-compare-goal bli-strategy != bli-strat-trash-transition)
+=>
+  (set-goal bli-strategy bli-strat-castle-pressure)
+  (set-goal bli-deviated bli-yes))
+; Losing stabilization (§41): verified wipe with the enemy inside kills the
+; pressure plan. Fall back, survive, rebuild — sunk cost stays sunk.
+(defrule
+  (up-compare-goal bli-army-lost == bli-yes)
+  (up-compare-goal bli-enemy-in-town == bli-yes)
+  (or (up-compare-goal bli-strategy == bli-strat-fast-castle)
+    (up-compare-goal bli-strategy == bli-strat-castle-pressure))
+=>
+  (set-goal bli-strategy bli-strat-defensive-feudal)
+  (set-goal bli-deviated bli-yes))
+; Failed conversion (C5 clock): five minutes into Castle with pressure intent
+; and no army means the transition produced nothing — stop pretending and
+; stabilize. Same abandonment principle, diagnosed by the clock.
+(defrule
+  (current-age == castle-age)
+  (current-age-time > 300)
+  (military-population < 5)
+  (up-compare-goal bli-strategy == bli-strat-castle-pressure)
+=>
+  (set-goal bli-strategy bli-strat-defensive-feudal)
+  (set-goal bli-deviated bli-yes))
+
+; ================= CASTLE STRATEGIC TRANSITION (P1) =================
+; Castle transition: reassess strategic posture
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-age-snap == bli-age-castle)
+  (up-compare-goal bli-age-prev != bli-age-castle)
+=>
+  (set-goal bli-castle-transition-state bli-castle-transition-state-active))
+; Castle transition active: reassess strategy based on new capabilities
+(defrule
+  (up-compare-goal bli-castle-transition-state == bli-castle-transition-state-active)
+  (up-compare-goal bli-strategy != bli-strat-castle-pressure)
+  (up-compare-goal bli-strategy != bli-strat-trash-transition)
+  (up-compare-goal bli-int-cav == bli-inv-heavy)
+  (gold-amount >= 300)
+  (military-population >= 5)
+=>
+  (set-goal bli-strategy bli-strat-castle-pressure)
+  (set-goal bli-deviated bli-yes))
+; Castle transition: archer-pressure with Castle tech
+(defrule
+  (up-compare-goal bli-castle-transition-state == bli-castle-transition-state-active)
+  (up-compare-goal bli-strategy != bli-strat-archer-pressure)
+  (up-compare-goal bli-int-archer != bli-inv-none)
+  (up-compare-goal bli-castle-transition-state == bli-castle-transition-state-active)
+=>
+  (set-goal bli-strategy bli-strat-archer-pressure)
+  (set-goal bli-deviated bli-yes))
+; Castle transition complete
+(defrule
+  (up-compare-goal bli-castle-transition-state == bli-castle-transition-state-complete)
+  (up-compare-goal bli-strategy != bli-strat-trash-transition)
+=>
+  (set-goal bli-strategy bli-strat-defensive-feudal)
+  (set-goal bli-deviated bli-yes))
+
+; ================= IMPERIAL STRATEGIC TRANSITION (P1) =================
+; Imperial transition activates strategic reassessment
+(defrule
+  (current-age == imperial-age)
+  (up-compare-goal bli-age-snap == bli-age-imperial)
+  (up-compare-goal bli-age-prev != bli-age-imperial)
+=>
+  (set-goal bli-imperial-transition-state bli-imperial-transition-state-active))
+; Imperial transition complete
+(defrule
+  (up-compare-goal bli-imperial-transition-state == bli-imperial-transition-state-complete)
+=>
+  (set-goal bli-strategy bli-strat-trash-transition)
+  (set-goal bli-deviated bli-yes))
+
+; ================= ABANDONMENT + LATE GAME (Prompt 9: §36, §37, §42, §43) =================

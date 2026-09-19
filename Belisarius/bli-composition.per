@@ -1,0 +1,767 @@
+; Belisarius bli-composition.per — Prompt 6 COMPOSITION + COUNTER-COUNTER + ROLE LIFECYCLE (C5).
+; Authority: this file owns role demand drivers and target counts.
+; Roles persist with hysteresis: evidence accumulates demand, absence decays it.
+; Targets are desired unit counts; production rules in bli-production fulfill them.
+; Transitions (Spear→Halb, Skirm→Elite, Archer→Xbow→Arbalest, Scout→LightCav→Hussar) are separate gates.
+
+; ================= DEMAND DRIVERS — SPEAR (anti-cavalry frontline) =================
+; Evidence: cavalry seen, cavalry predicted, defensive feudal posture
+; Decay: when no active target (target == 0) OR target satisfied (units >= target)
+; STANDING FLOOR: minimum persistent demand regardless of threat evidence
+(defrule
+  (current-age == feudal-age)
+  (up-compare-goal bli-strategy != bli-strat-fast-castle)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_LIGHT))
+(defrule
+  (or (up-compare-goal bli-target-spear c:== 0)
+    (and (up-compare-goal bli-target-spear c:> 0)
+      (unit-type-count-total spearman-line c:>= bli-target-spear)))
+=>
+  (up-modify-goal bli-demand-spear c:- DEMAND_DECAY))
+(defrule
+  (up-compare-goal bli-int-cav == bli-inv-light)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_LIGHT))
+(defrule
+  (up-compare-goal bli-int-cav == bli-inv-meaningful)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (up-compare-goal bli-int-cav == bli-inv-heavy)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_HEAVY))
+(defrule
+  (up-compare-goal bli-pred-cav-more == bli-yes)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_PREDICTED))
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-defensive-feudal)
+  (current-age == feudal-age)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_LIGHT))
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-ranged-defense)
+  (current-age == feudal-age)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-knight-play)
+  (current-age == feudal-age)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_MEANINGFUL))
+; Sustain: active target exists but units < target
+(defrule
+  (up-compare-goal bli-target-spear c:> 0)
+  (unit-type-count-total spearman-line c:< bli-target-spear)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_LIGHT))
+; Clamp demand
+(defrule
+  (up-compare-goal bli-demand-spear g:> DEMAND_MAX)
+=>
+  (set-goal bli-demand-spear DEMAND_MAX))
+(defrule
+  (up-compare-goal bli-demand-spear c:< 0)
+=>
+  (set-goal bli-demand-spear 0))
+; Convert demand to target count (with floor when role active)
+(defrule
+  (true)
+=>
+  (up-modify-goal bli-target-spear g:= bli-demand-spear)
+  (up-modify-goal bli-target-spear c:* TARGET_SPEAR_PER_DEMAND))
+(defrule
+  (up-compare-goal bli-target-spear c:> 0)
+  (up-compare-goal bli-target-spear c:< TARGET_SPEAR_MIN)
+=>
+  (set-goal bli-target-spear TARGET_SPEAR_MIN))
+
+; ================= DEMAND DRIVERS — SKIRM (anti-ranged) =================
+; Evidence: archers seen, ranged support predicted
+; Decay: when no active target (target == 0) OR target satisfied (units >= target)
+; STANDING FLOOR: minimum persistent demand regardless of threat evidence
+(defrule
+  (current-age == feudal-age)
+  (or (up-compare-goal bli-strategy == bli-strat-ranged-defense)
+    (or (up-compare-goal bli-strategy == bli-strat-defensive-feudal)
+      (up-compare-goal bli-strategy == bli-strat-scout-pressure)))
+=>
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_LIGHT))
+(defrule
+  (or (up-compare-goal bli-target-skirm c:== 0)
+    (and (up-compare-goal bli-target-skirm c:> 0)
+      (unit-type-count-total skirmisher-line c:>= bli-target-skirm)))
+=>
+  (up-modify-goal bli-demand-skirm c:- DEMAND_DECAY))
+(defrule
+  (up-compare-goal bli-int-archer == bli-inv-light)
+=>
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_LIGHT))
+(defrule
+  (up-compare-goal bli-int-archer == bli-inv-meaningful)
+=>
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (up-compare-goal bli-int-archer == bli-inv-heavy)
+=>
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_HEAVY))
+(defrule
+  (up-compare-goal bli-pred-range-support == bli-yes)
+=>
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_PREDICTED))
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-ranged-defense)
+  (current-age == feudal-age)
+=>
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_HEAVY))
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-defensive-feudal)
+  (current-age == feudal-age)
+=>
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_MEANINGFUL))
+; Sustain: active target exists but units < target
+(defrule
+  (up-compare-goal bli-target-skirm c:> 0)
+  (unit-type-count-total skirmisher-line c:< bli-target-skirm)
+=>
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_LIGHT))
+(defrule
+  (up-compare-goal bli-demand-skirm g:> DEMAND_MAX)
+=>
+  (set-goal bli-demand-skirm DEMAND_MAX))
+(defrule
+  (up-compare-goal bli-demand-skirm c:< 0)
+=>
+  (set-goal bli-demand-skirm 0))
+(defrule
+  (true)
+=>
+  (up-modify-goal bli-target-skirm g:= bli-demand-skirm)
+  (up-modify-goal bli-target-skirm c:* TARGET_SKIRM_PER_DEMAND))
+(defrule
+  (up-compare-goal bli-target-skirm c:> 0)
+  (up-compare-goal bli-target-skirm c:< TARGET_SKIRM_MIN)
+=>
+  (set-goal bli-target-skirm TARGET_SKIRM_MIN))
+
+; ================= DEMAND DRIVERS — ARCHER (ranged pressure / infantry punish) =================
+; Evidence: archer-pressure strategy, meaningful/heavy infantry, pure infantry opponent
+; Decay: when no active target (target == 0) OR target satisfied (units >= target)
+; STANDING FLOOR: minimum persistent demand regardless of threat evidence
+(defrule
+  (current-age == feudal-age)
+  (or (up-compare-goal bli-strategy == bli-strat-archer-pressure)
+    (or (up-compare-goal bli-strategy == bli-strat-ranged-defense)
+      (up-compare-goal bli-strategy == bli-strat-knight-play)))
+=>
+  (up-modify-goal bli-demand-archer c:+ DEMAND_INC_LIGHT))
+(defrule
+  (or (up-compare-goal bli-target-archer c:== 0)
+    (and (up-compare-goal bli-target-archer c:> 0)
+      (unit-type-count-total archer-line c:>= bli-target-archer)))
+=>
+  (up-modify-goal bli-demand-archer c:- DEMAND_DECAY))
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-archer-pressure)
+  (up-compare-goal bli-int-cav != bli-inv-heavy)
+=>
+  (up-modify-goal bli-demand-archer c:+ DEMAND_INC_HEAVY))
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-ranged-defense)
+  (current-age == feudal-age)
+=>
+  (up-modify-goal bli-demand-archer c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-knight-play)
+  (current-age == feudal-age)
+=>
+  (up-modify-goal bli-demand-archer c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (up-compare-goal bli-int-inf == bli-inv-meaningful)
+  (current-age == feudal-age)
+=>
+  (up-modify-goal bli-demand-archer c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (up-compare-goal bli-int-inf == bli-inv-heavy)
+  (current-age == feudal-age)
+=>
+  (up-modify-goal bli-demand-archer c:+ DEMAND_INC_HEAVY))
+(defrule
+  (up-compare-goal bli-opp-main == bli-opp-infantry)
+  (current-age == feudal-age)
+=>
+  (up-modify-goal bli-demand-archer c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (up-compare-goal bli-opp-mixed == bli-yes)
+  (up-compare-goal bli-target-spear c:> 0)
+=>
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_MEANINGFUL))
+; Sustain: active target exists but units < target
+(defrule
+  (up-compare-goal bli-target-archer c:> 0)
+  (unit-type-count-total archer-line c:< bli-target-archer)
+=>
+  (up-modify-goal bli-demand-archer c:+ DEMAND_INC_LIGHT))
+(defrule
+  (up-compare-goal bli-demand-archer g:> DEMAND_MAX)
+=>
+  (set-goal bli-demand-archer DEMAND_MAX))
+(defrule
+  (up-compare-goal bli-demand-archer c:< 0)
+=>
+  (set-goal bli-demand-archer 0))
+(defrule
+  (true)
+=>
+  (up-modify-goal bli-target-archer g:= bli-demand-archer)
+  (up-modify-goal bli-target-archer c:* TARGET_ARCHER_PER_DEMAND))
+(defrule
+  (up-compare-goal bli-target-archer c:> 0)
+  (up-compare-goal bli-target-archer c:< TARGET_ARCHER_MIN)
+=>
+  (set-goal bli-target-archer TARGET_ARCHER_MIN))
+
+; ================= DEMAND DRIVERS — SCOUT (early Feudal pressure) =================
+; Evidence: scout-pressure strategy, early Feudal, no heavy archers
+; Decay: when no active target (target == 0) OR target satisfied (units >= target)
+; STANDING FLOOR: minimum persistent demand regardless of threat evidence
+(defrule
+  (current-age == feudal-age)
+  (or (up-compare-goal bli-strategy == bli-strat-scout-pressure)
+    (or (up-compare-goal bli-strategy == bli-strat-ranged-defense)
+      (up-compare-goal bli-strategy == bli-strat-knight-play)))
+=>
+  (up-modify-goal bli-demand-scout c:+ DEMAND_INC_LIGHT))
+(defrule
+  (or (up-compare-goal bli-target-scout c:== 0)
+    (and (up-compare-goal bli-target-scout c:> 0)
+      (unit-type-count-total scout-cavalry-line c:>= bli-target-scout)))
+=>
+  (up-modify-goal bli-demand-scout c:- DEMAND_DECAY))
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-scout-pressure)
+  (current-age == feudal-age)
+  (game-time < 900)
+  (up-compare-goal bli-int-archer != bli-inv-heavy)
+=>
+  (up-modify-goal bli-demand-scout c:+ DEMAND_INC_HEAVY))
+; Sustain: active target exists but units < target
+(defrule
+  (up-compare-goal bli-target-scout c:> 0)
+  (unit-type-count-total scout-cavalry-line c:< bli-target-scout)
+=>
+  (up-modify-goal bli-demand-scout c:+ DEMAND_INC_LIGHT))
+(defrule
+  (up-compare-goal bli-demand-scout g:> DEMAND_MAX)
+=>
+  (set-goal bli-demand-scout DEMAND_MAX))
+(defrule
+  (up-compare-goal bli-demand-scout c:< 0)
+=>
+  (set-goal bli-demand-scout 0))
+(defrule
+  (true)
+=>
+  (up-modify-goal bli-target-scout g:= bli-demand-scout)
+  (up-modify-goal bli-target-scout c:* TARGET_SCOUT_PER_DEMAND))
+(defrule
+  (up-compare-goal bli-target-scout c:> 0)
+  (up-compare-goal bli-target-scout c:< TARGET_SCOUT_MIN)
+=>
+  (set-goal bli-target-scout TARGET_SCOUT_MIN))
+
+; ================= DEMAND DRIVERS — KNIGHT (Castle archer punish) =================
+; Evidence: meaningful/heavy archers in Castle, gold available
+; Decay: when no active target (target == 0) OR target satisfied (units >= target)
+; STANDING FLOOR: minimum persistent demand in Castle for cavalry presence
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-strategy != bli-strat-trash-transition)
+=>
+  (up-modify-goal bli-demand-knight c:+ DEMAND_INC_LIGHT))
+(defrule
+  (or (up-compare-goal bli-target-knight c:== 0)
+    (and (up-compare-goal bli-target-knight c:> 0)
+      (unit-type-count-total knight-line c:>= bli-target-knight)))
+=>
+  (up-modify-goal bli-demand-knight c:- DEMAND_DECAY))
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-int-archer == bli-inv-meaningful)
+  (gold-amount >= 300)
+=>
+  (up-modify-goal bli-demand-knight c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-int-archer == bli-inv-heavy)
+  (gold-amount >= 300)
+=>
+  (up-modify-goal bli-demand-knight c:+ DEMAND_INC_HEAVY))
+; Sustain: active target exists but units < target
+(defrule
+  (up-compare-goal bli-target-knight c:> 0)
+  (unit-type-count-total knight-line c:< bli-target-knight)
+=>
+  (up-modify-goal bli-demand-knight c:+ DEMAND_INC_LIGHT))
+(defrule
+  (up-compare-goal bli-demand-knight g:> DEMAND_MAX)
+=>
+  (set-goal bli-demand-knight DEMAND_MAX))
+(defrule
+  (up-compare-goal bli-demand-knight c:< 0)
+=>
+  (set-goal bli-demand-knight 0))
+(defrule
+  (true)
+=>
+  (up-modify-goal bli-target-knight g:= bli-demand-knight)
+  (up-modify-goal bli-target-knight c:* TARGET_KNIGHT_PER_DEMAND))
+(defrule
+  (up-compare-goal bli-target-knight c:> 0)
+  (up-compare-goal bli-target-knight c:< TARGET_KNIGHT_MIN)
+=>
+  (set-goal bli-target-knight TARGET_KNIGHT_MIN))
+
+; ================= DEMAND DRIVERS — MONK (multi-factor: relics, healing, conversion, cavalry) =================
+; Evidence: relics visible, cavalry threat, own army worth healing, enemy conversion targets
+; NOT tied solely to cavalry memory
+; Decay: when no active target (target == 0) OR target satisfied (units >= target)
+; STANDING FLOOR: minimum persistent demand in Castle for healing/conversion/relics
+(defrule
+  (current-age == castle-age)
+  (or (up-compare-goal bli-strategy == bli-strat-defensive-feudal)
+    (or (up-compare-goal bli-strategy == bli-strat-ranged-defense)
+      (up-compare-goal bli-strategy == bli-strat-castle-pressure)))
+=>
+  (up-modify-goal bli-demand-monk c:+ DEMAND_INC_LIGHT))
+(defrule
+  (or (up-compare-goal bli-target-monk c:== 0)
+    (and (up-compare-goal bli-target-monk c:> 0)
+      (unit-type-count-total monk c:>= bli-target-monk)))
+=>
+  (up-modify-goal bli-demand-monk c:- DEMAND_DECAY))
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-relic-seen == bli-yes)
+  (gold-amount >= 200)
+=>
+  (up-modify-goal bli-demand-monk c:+ DEMAND_INC_HEAVY))
+(defrule
+  (current-age == castle-age)
+  (or (up-compare-goal bli-int-cav == bli-inv-meaningful)
+    (up-compare-goal bli-int-cav == bli-inv-heavy))
+  (military-population >= 8)
+=>
+  (up-modify-goal bli-demand-monk c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-own-knight c:> 0)
+  (military-population >= 10)
+=>
+  (up-modify-goal bli-demand-monk c:+ DEMAND_INC_LIGHT))
+(defrule
+  (current-age == castle-age)
+  (players-unit-type-count any-enemy knight-line >= 2)
+=>
+  (up-modify-goal bli-demand-monk c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (up-compare-goal bli-relic-seen == bli-yes)
+  (gold-amount >= 200)
+=>
+  (up-modify-goal bli-demand-monk c:+ DEMAND_INC_HEAVY))
+; Sustain: active target exists but units < target
+(defrule
+  (up-compare-goal bli-target-monk c:> 0)
+  (unit-type-count-total monk c:< bli-target-monk)
+=>
+  (up-modify-goal bli-demand-monk c:+ DEMAND_INC_LIGHT))
+(defrule
+  (up-compare-goal bli-demand-monk g:> DEMAND_MAX)
+=>
+  (set-goal bli-demand-monk DEMAND_MAX))
+(defrule
+  (up-compare-goal bli-demand-monk c:< 0)
+=>
+  (set-goal bli-demand-monk 0))
+(defrule
+  (true)
+=>
+  (up-modify-goal bli-target-monk g:= bli-demand-monk)
+  (up-modify-goal bli-target-monk c:* TARGET_MONK_PER_DEMAND))
+(defrule
+  (up-compare-goal bli-target-monk c:> 0)
+  (up-compare-goal bli-target-monk c:< TARGET_MONK_MIN)
+=>
+  (set-goal bli-target-monk TARGET_MONK_MIN))
+
+; ================= DEMAND DRIVERS — SIEGE (positional problem solver) =================
+; Evidence: castle-pressure strategy, enemy castle plan, enemy fortifications seen
+; Decay: when no active target (target == 0) OR target satisfied (units >= target)
+; STANDING FLOOR: minimum persistent demand in Castle for siege capability
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-strategy != bli-strat-trash-transition)
+=>
+  (up-modify-goal bli-demand-siege c:+ DEMAND_INC_LIGHT))
+(defrule
+  (or (up-compare-goal bli-target-siege c:== 0)
+    (and (up-compare-goal bli-target-siege c:> 0)
+      (unit-type-count-total battering-ram-line c:>= bli-target-siege)))
+=>
+  (up-modify-goal bli-demand-siege c:- DEMAND_DECAY))
+(defrule
+  (up-compare-goal bli-strategy == bli-strat-castle-pressure)
+=>
+  (up-modify-goal bli-demand-siege c:+ DEMAND_INC_HEAVY))
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-int-castle-plan == bli-yes)
+=>
+  (up-modify-goal bli-demand-siege c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (current-age >= castle-age)
+  (or (players-building-type-count any-enemy castle >= 1)
+    (or (players-building-type-count any-enemy watch-tower >= 2)
+      (players-building-type-count any-enemy palisade-wall >= 5)))
+=>
+  (up-modify-goal bli-demand-siege c:+ DEMAND_INC_LIGHT))
+; Sustain: active target exists but units < target
+(defrule
+  (up-compare-goal bli-target-siege c:> 0)
+  (unit-type-count-total battering-ram-line c:< bli-target-siege)
+=>
+  (up-modify-goal bli-demand-siege c:+ DEMAND_INC_LIGHT))
+(defrule
+  (up-compare-goal bli-demand-siege g:> DEMAND_MAX)
+=>
+  (set-goal bli-demand-siege DEMAND_MAX))
+(defrule
+  (up-compare-goal bli-demand-siege c:< 0)
+=>
+  (set-goal bli-demand-siege 0))
+(defrule
+  (true)
+=>
+  (up-modify-goal bli-target-siege g:= bli-demand-siege)
+  (up-modify-goal bli-target-siege c:* TARGET_SIEGE_PER_DEMAND))
+(defrule
+  (up-compare-goal bli-target-siege c:> 0)
+  (up-compare-goal bli-target-siege c:< TARGET_SIEGE_MIN)
+=>
+  (set-goal bli-target-siege TARGET_SIEGE_MIN))
+
+; ================= DEMAND DRIVERS — MOBILE (raiding, map control, trash transition) =================
+; Evidence: existing raid force, chasing ranged, trash transition strategy
+; Decay: when no active target (target == 0) OR target satisfied (units >= target)
+; STANDING FLOOR: minimum persistent mobile demand in Castle/Imperial
+; FEUDAL MOBILE: Scout/Light Cav demand in Feudal for raiding/mobility
+(defrule
+  (or (current-age == castle-age)
+    (current-age == imperial-age))
+  (up-compare-goal bli-strategy != bli-strat-trash-transition)
+=>
+  (up-modify-goal bli-demand-mobile c:+ DEMAND_INC_LIGHT))
+; FEUDAL MOBILE: Scout pressure and raiding demand in Feudal
+(defrule
+  (current-age == feudal-age)
+  (or (up-compare-goal bli-strategy == bli-strat-scout-pressure)
+    (or (up-compare-goal bli-strategy == bli-strat-ranged-defense)
+      (up-compare-goal bli-strategy == bli-strat-knight-play)))
+=>
+  (up-modify-goal bli-demand-mobile c:+ DEMAND_INC_LIGHT))
+(defrule
+  (or (up-compare-goal bli-target-mobile c:== 0)
+    (and (up-compare-goal bli-target-mobile c:> 0)
+      (unit-type-count-total scout-cavalry-line c:>= bli-target-mobile)))
+=>
+  (up-modify-goal bli-demand-mobile c:- DEMAND_DECAY))
+(defrule
+  (current-age == castle-age)
+  (or (unit-type-count-total scout-cavalry-line >= 3)
+    (unit-type-count-total knight-line >= 3))
+=>
+  (up-modify-goal bli-demand-mobile c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (current-age == castle-age)
+  (or (up-compare-goal bli-int-archer == bli-inv-meaningful)
+    (up-compare-goal bli-int-archer == bli-inv-heavy))
+=>
+  (up-modify-goal bli-demand-mobile c:+ DEMAND_INC_LIGHT))
+(defrule
+  (current-age == imperial-age)
+  (up-compare-goal bli-strategy == bli-strat-trash-transition)
+=>
+  (up-modify-goal bli-demand-mobile c:+ DEMAND_INC_HEAVY))
+; Sustain: active target exists but units < target
+(defrule
+  (up-compare-goal bli-target-mobile c:> 0)
+  (unit-type-count-total scout-cavalry-line c:< bli-target-mobile)
+=>
+  (up-modify-goal bli-demand-mobile c:+ DEMAND_INC_LIGHT))
+(defrule
+  (up-compare-goal bli-demand-mobile g:> DEMAND_MAX)
+=>
+  (set-goal bli-demand-mobile DEMAND_MAX))
+(defrule
+  (up-compare-goal bli-demand-mobile c:< 0)
+=>
+  (set-goal bli-demand-mobile 0))
+(defrule
+  (true)
+=>
+  (up-modify-goal bli-target-mobile g:= bli-demand-mobile)
+  (up-modify-goal bli-target-mobile c:* TARGET_MOBILE_PER_DEMAND))
+(defrule
+  (up-compare-goal bli-target-mobile c:> 0)
+  (up-compare-goal bli-target-mobile c:< TARGET_MOBILE_MIN)
+=>
+  (set-goal bli-target-mobile TARGET_MOBILE_MIN))
+
+; ================= DEMAND DRIVERS — CAMEL (Byzantine anti-cavalry) =================
+; Evidence: heavy cavalry threat, Castle/Imperial, gold available
+; Byzantine bonus: -20% cost, +1 pierce armor
+; Decay: when no active target (target == 0) OR target satisfied (units >= target)
+; STANDING FLOOR: minimum persistent Camel demand when heavy cavalry threat exists
+(defrule
+  (current-age == castle-age)
+  (or (up-compare-goal bli-int-cav == bli-inv-meaningful)
+    (up-compare-goal bli-int-cav == bli-inv-heavy))
+  (gold-amount >= 200)
+=>
+  (up-modify-goal bli-demand-camel c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (current-age == imperial-age)
+  (or (up-compare-goal bli-int-cav == bli-inv-meaningful)
+    (up-compare-goal bli-int-cav == bli-inv-heavy))
+  (gold-amount >= 200)
+=>
+  (up-modify-goal bli-demand-camel c:+ DEMAND_INC_MEANINGFUL))
+; Sustain: active target exists but units < target
+(defrule
+  (up-compare-goal bli-target-camel c:> 0)
+  (unit-type-count-total camel-line c:< bli-target-camel)
+=>
+  (up-modify-goal bli-demand-camel c:+ DEMAND_INC_LIGHT))
+(defrule
+  (up-compare-goal bli-demand-camel g:> DEMAND_MAX)
+=>
+  (set-goal bli-demand-camel DEMAND_MAX))
+(defrule
+  (up-compare-goal bli-demand-camel c:< 0)
+=>
+  (set-goal bli-demand-camel 0))
+(defrule
+  (true)
+=>
+  (up-modify-goal bli-target-camel g:= bli-demand-camel)
+  (up-modify-goal bli-target-camel c:* TARGET_CAMEL_PER_DEMAND))
+(defrule
+  (up-compare-goal bli-target-camel c:> 0)
+  (up-compare-goal bli-target-camel c:< TARGET_CAMEL_MIN)
+=>
+  (set-goal bli-target-camel TARGET_CAMEL_MIN))
+
+; ================= COMPOSITION ARBITRATION (Byzantine) =================
+; Explicit priority ordering for stable production:
+; 1. Camel (anti-cavalry) > Light Cavalry/Hussar (mobility/raiding) > Knight (heavy cav)
+; Priority enforced by production rules checking higher-priority targets first
+; If Camel target > 0, Stable produces Camels first
+; Then Light Cavalry/Hussar if mobile target > 0
+; Then Knight if knight target > 0 and no higher priority
+
+; ================= DEMAND DRIVERS — CATAPHRACT (Byzantine situational) =================
+; Evidence: Byzantine, Castle/Imperial, castle standing, meaningful/heavy infantry, gold
+; Decay: when no active target (target == 0) OR target satisfied (units >= target)
+; STANDING FLOOR: minimum persistent demand for Byzantine unique unit in Castle/Imperial
+(defrule
+  (civ-selected byzantine)
+  (or (current-age == castle-age)
+    (current-age == imperial-age))
+  (building-type-count-total castle >= 1)
+=>
+  (up-modify-goal bli-demand-cata c:+ DEMAND_INC_LIGHT))
+(defrule
+  (or (up-compare-goal bli-target-cata c:== 0)
+    (and (up-compare-goal bli-target-cata c:> 0)
+      (unit-type-count-total cataphract-line c:>= bli-target-cata)))
+=>
+  (up-modify-goal bli-demand-cata c:- DEMAND_DECAY))
+(defrule
+  (civ-selected byzantine)
+  (or (current-age == castle-age)
+    (current-age == imperial-age))
+  (building-type-count-total castle >= 1)
+  (up-compare-goal bli-int-inf == bli-inv-meaningful)
+  (gold-amount >= 500)
+=>
+  (up-modify-goal bli-demand-cata c:+ DEMAND_INC_MEANINGFUL))
+(defrule
+  (civ-selected byzantine)
+  (or (current-age == castle-age)
+    (current-age == imperial-age))
+  (building-type-count-total castle >= 1)
+  (up-compare-goal bli-int-inf == bli-inv-heavy)
+  (gold-amount >= 500)
+=>
+  (up-modify-goal bli-demand-cata c:+ DEMAND_INC_HEAVY))
+; Sustain: active target exists but units < target
+(defrule
+  (up-compare-goal bli-target-cata c:> 0)
+  (unit-type-count-total cataphract-line c:< bli-target-cata)
+=>
+  (up-modify-goal bli-demand-cata c:+ DEMAND_INC_LIGHT))
+(defrule
+  (up-compare-goal bli-demand-cata g:> DEMAND_MAX)
+=>
+  (set-goal bli-demand-cata DEMAND_MAX))
+(defrule
+  (up-compare-goal bli-demand-cata c:< 0)
+=>
+  (set-goal bli-demand-cata 0))
+(defrule
+  (true)
+=>
+  (up-modify-goal bli-target-cata g:= bli-demand-cata)
+  (up-modify-goal bli-target-cata c:* TARGET_CATA_PER_DEMAND))
+(defrule
+  (up-compare-goal bli-target-cata c:> 0)
+  (up-compare-goal bli-target-cata c:< TARGET_CATA_MIN)
+=>
+  (set-goal bli-target-cata TARGET_CATA_MIN))
+
+; ================= COUNTER-COUNTER ADJUSTMENTS (demand modifiers, not boolean flips) =================
+; Pure spears + mixed enemy → add skirm demand
+(defrule
+  (up-compare-goal bli-demand-spear c:> 10)
+  (or (up-compare-goal bli-opp-mixed == bli-yes)
+    (up-compare-goal bli-pred-range-support == bli-yes))
+  (up-compare-goal bli-demand-skirm c:< DEMAND_INC_MEANINGFUL)
+=>
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_MEANINGFUL))
+; Skirms + cavalry threat → ensure spear demand
+(defrule
+  (up-compare-goal bli-demand-skirm c:> 10)
+  (or (up-compare-goal bli-int-cav == bli-inv-meaningful)
+    (up-compare-goal bli-int-cav == bli-inv-heavy))
+  (up-compare-goal bli-demand-spear c:< DEMAND_INC_LIGHT)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_LIGHT))
+; Knights + infantry threat → add archer demand
+(defrule
+  (up-compare-goal bli-demand-knight c:> 5)
+  (or (up-compare-goal bli-int-inf == bli-inv-meaningful)
+    (up-compare-goal bli-int-inf == bli-inv-heavy))
+  (up-compare-goal bli-demand-archer c:< DEMAND_INC_LIGHT)
+=>
+  (up-modify-goal bli-demand-archer c:+ DEMAND_INC_LIGHT))
+
+; ================= ROLE TRANSITION GATES (C5: age/upgrade progression) =================
+; Spear → Halb: sufficient mass + Castle/Imperial + cavalry remains relevant
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-target-spear c:>= 8)
+  (or (up-compare-goal bli-int-cav == bli-inv-meaningful)
+    (or (up-compare-goal bli-int-cav == bli-inv-heavy)
+      (up-compare-goal bli-pred-cav-more == bli-yes)))
+=>
+  (set-goal bli-role-spear-to-halb bli-yes))
+(defrule
+  (current-age == imperial-age)
+  (up-compare-goal bli-target-spear c:>= 6)
+=>
+  (set-goal bli-role-spear-to-halb bli-yes))
+(defrule
+  (or (current-age == dark-age)
+    (or (current-age == feudal-age)
+      (and (current-age == castle-age)
+        (and (up-compare-goal bli-int-cav == bli-inv-none)
+          (and (up-compare-goal bli-pred-cav-more == bli-no)
+            (up-compare-goal bli-target-spear c:< 8))))))
+=>
+  (set-goal bli-role-spear-to-halb bli-no))
+
+; Skirm → Elite Skirm: sufficient mass + Imperial + ranged pressure sustained
+(defrule
+  (current-age == imperial-age)
+  (up-compare-goal bli-target-skirm c:>= 8)
+  (or (up-compare-goal bli-int-archer != bli-inv-none)
+    (up-compare-goal bli-pred-range-support == bli-yes))
+=>
+  (set-goal bli-role-skirm-to-elite bli-yes))
+(defrule
+  (or (current-age != imperial-age)
+    (or (up-compare-goal bli-target-skirm c:< 8)
+      (and (up-compare-goal bli-int-archer == bli-inv-none)
+        (up-compare-goal bli-pred-range-support == bli-no))))
+=>
+  (set-goal bli-role-skirm-to-elite bli-no))
+
+; Archer → Crossbow: Castle age + archer mass + ranged strategy or mixed need
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-target-archer c:>= 8)
+  (or (up-compare-goal bli-strategy == bli-strat-archer-pressure)
+    (or (up-compare-goal bli-opp-mixed == bli-yes)
+      (up-compare-goal bli-int-inf != bli-inv-none)))
+=>
+  (set-goal bli-role-archer-to-xbow bli-yes))
+(defrule
+  (or (current-age != castle-age)
+    (or (up-compare-goal bli-target-archer c:< 8)
+      (and (up-compare-goal bli-strategy != bli-strat-archer-pressure)
+        (and (up-compare-goal bli-opp-mixed == bli-no)
+          (up-compare-goal bli-int-inf == bli-inv-none)))))
+=>
+  (set-goal bli-role-archer-to-xbow bli-no))
+
+; Archer → Arbalest: Imperial + crossbow done + archer mass worth upgrading
+(defrule
+  (current-age == imperial-age)
+  (research-completed ri-bodkin-arrow)
+  (up-compare-goal bli-target-archer c:>= 10)
+=>
+  (set-goal bli-role-archer-to-arbalest bli-yes))
+(defrule
+  (or (current-age != imperial-age)
+    (up-compare-goal bli-target-archer c:< 10))
+=>
+  (set-goal bli-role-archer-to-arbalest bli-no))
+
+; Scout → Light Cav: Castle + existing scout mass + mobility role active
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-target-mobile c:>= 4)
+  (unit-type-count-total scout-cavalry-line >= 3)
+=>
+  (set-goal bli-role-scout-to-lightcav bli-yes))
+(defrule
+  (or (current-age != castle-age)
+    (up-compare-goal bli-target-mobile c:< 4))
+=>
+  (set-goal bli-role-scout-to-lightcav bli-no))
+
+; Light Cav → Hussar: Imperial + trash transition or mobility scaling
+(defrule
+  (current-age == imperial-age)
+  (or (up-compare-goal bli-strategy == bli-strat-trash-transition)
+    (and (up-compare-goal bli-target-mobile c:>= 6)
+      (unit-type-count-total light-cavalry >= 4)))
+=>
+  (set-goal bli-role-lightcav-to-hussar bli-yes))
+(defrule
+  (current-age != imperial-age)
+=>
+  (set-goal bli-role-lightcav-to-hussar bli-no))
+(defrule
+  (current-age == imperial-age)
+  (up-compare-goal bli-strategy != bli-strat-trash-transition)
+  (up-compare-goal bli-target-mobile c:< 6)
+=>
+  (set-goal bli-role-lightcav-to-hussar bli-no))
+(defrule
+  (current-age == imperial-age)
+  (up-compare-goal bli-strategy != bli-strat-trash-transition)
+  (unit-type-count-total light-cavalry < 4)
+=>
+  (set-goal bli-role-lightcav-to-hussar bli-no))

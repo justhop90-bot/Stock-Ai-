@@ -1,0 +1,392 @@
+; Belisarius bli-init.per — Prompt 1 safe defaults + reliable execution base.
+; Pattern source: Naga initialization.per (minimal safe subset). No Byzantine-bot code.
+
+; --- engine-safe execution defaults: run once, then disable-self ---
+(defrule
+  (true)
+=>
+  (set-strategic-number sn-attack-intelligence 1)
+  (set-strategic-number sn-attack-separation-time-randomness 0)
+  (set-strategic-number sn-attack-winning-player 1)
+  (set-strategic-number sn-attack-winning-player-factor 1)
+  (set-strategic-number sn-attack-group-size-randomness 0)
+  (set-strategic-number sn-attack-group-gather-spacing 5)
+  (set-strategic-number sn-task-ungrouped-soldiers 0)
+  (set-strategic-number sn-enable-patrol-attack 1)
+  (set-strategic-number sn-ignore-attack-group-under-attack 0)
+  (set-strategic-number sn-initial-attack-delay 0)
+  (set-strategic-number sn-initial-attack-delay-type 0)
+  (set-strategic-number sn-garrison-rams 0)
+  (disable-self))
+
+(defrule
+  (true)
+=>
+  (set-strategic-number sn-disable-sighted-response-cap 1)
+  (set-strategic-number sn-enemy-sighted-response-distance 0)
+  (set-strategic-number sn-percent-enemy-sighted-response 100)
+  (set-strategic-number sn-percent-attack-soldiers 0)
+  (set-strategic-number sn-percent-attack-boats 0)
+  (set-strategic-number sn-number-defend-groups 0)
+  (set-strategic-number sn-number-attack-groups 0)
+  (set-strategic-number sn-minimum-defend-group-size 1)
+  (set-strategic-number sn-maximum-defend-group-size 1)
+  (set-strategic-number sn-minimum-attack-group-size 1)
+  (set-strategic-number sn-maximum-attack-group-size 1)
+  (set-strategic-number sn-group-form-distance 40)
+  (disable-self))
+
+(defrule
+  (true)
+=>
+  (set-strategic-number sn-cap-civilian-builders 200)
+  (set-strategic-number sn-cap-civilian-explorers 100)
+  (set-strategic-number sn-cap-civilian-gatherers 1000)
+  (set-strategic-number sn-percent-civilian-builders 100)
+  (set-strategic-number sn-percent-civilian-explorers 100)
+  (set-strategic-number sn-percent-civilian-gatherers 100)
+  (set-strategic-number sn-minimum-dropsite-buffer 18)
+  (set-strategic-number sn-intelligent-gathering 1)
+  (set-strategic-number sn-max-retask-gather-amount 0)
+  (set-strategic-number sn-retask-gather-amount 0)
+  (set-strategic-number sn-minimum-town-size 3)
+  (set-strategic-number sn-maximum-town-size 10)
+  (set-strategic-number sn-safe-town-size 16)
+  (set-strategic-number sn-number-explore-groups 1)
+  (set-strategic-number sn-total-number-explorers 1)
+  (set-strategic-number sn-minimum-explore-group-size 1)
+  (set-strategic-number sn-maximum-explore-group-size 1)
+  (set-strategic-number sn-blot-exploration-map 0)
+  (set-strategic-number sn-blot-size 1)
+  (set-strategic-number sn-do-not-scale-for-difficulty-level 1)
+  (set-strategic-number sn-disable-builder-assistance 0)
+  (disable-self))
+
+(defrule
+  (true)
+=>
+  (set-strategic-number sn-enable-training-queue 0)
+  (set-strategic-number sn-enable-research-queue 0)
+  (set-strategic-number sn-livestock-to-town-center 1)
+  (set-strategic-number sn-disable-builder-assistance 1)
+  (set-strategic-number sn-allow-civilian-defense 1)
+  (set-strategic-number sn-allow-civilian-offense 0)
+  (set-strategic-number sn-number-civilian-militia 0)
+  (set-strategic-number sn-enable-boar-hunting 0)
+  (disable-self))
+
+; --- Belisarius loop state init ---
+(defrule
+  (true)
+=>
+  (set-goal bli-loop-generation 0)
+  (set-goal bli-loop-phase bli-phase-observe)
+  (set-goal bli-strategy bli-strat-unset)
+  (set-goal bli-plan-valid bli-no)
+  (set-goal bli-last-verify-time 0)
+  (set-goal bli-strat-generation 0)
+  (set-goal bli-game-time 0)
+  (set-goal bli-my-pop 0)
+  (set-goal bli-my-cpop 0)
+  (set-goal bli-my-mpop 0)
+  (set-goal bli-age-snap bli-age-dark)
+  (set-goal bli-vill-count 0)
+  (enable-timer bli-timer-fast 5)
+  (enable-timer bli-timer-strat 60)
+  (enable-timer bli-timer-econ 3)
+  (disable-self))
+
+; --- Prompt 2 observation + memory + scout init ---
+; Split across four one-shot rules: DE caps a rule at 32 commands.
+(defrule
+  (true)
+=>
+  (set-goal bli-food 0)
+  (set-goal bli-wood 0)
+  (set-goal bli-gold 0)
+  (set-goal bli-stone 0)
+  (set-goal bli-own-tc 0)
+  (set-goal bli-own-barracks 0)
+  (set-goal bli-own-range 0)
+  (set-goal bli-own-stable 0)
+  (set-goal bli-own-siege 0)
+  (set-goal bli-own-monastery 0)
+  (set-goal bli-own-castle 0)
+  (disable-self))
+(defrule
+  (true)
+=>
+  (set-goal bli-own-scout 0)
+  (set-goal bli-own-spear 0)
+  (set-goal bli-own-archer 0)
+  (set-goal bli-own-skirm 0)
+  (set-goal bli-own-knight 0)
+  (set-goal bli-own-monk 0)
+  (set-goal bli-own-siege-units 0)
+  (set-goal bli-enemy-in-town 0)
+  (disable-self))
+(defrule
+  (true)
+=>
+  (set-goal bli-em-stable bli-no)
+  (set-goal bli-em-stable-at 0)
+  (set-goal bli-em-range bli-no)
+  (set-goal bli-em-range-at 0)
+  (set-goal bli-em-barracks bli-no)
+  (set-goal bli-em-barracks-at 0)
+  (set-goal bli-em-siege bli-no)
+  (set-goal bli-em-siege-at 0)
+  (set-goal bli-em-castle bli-no)
+  (set-goal bli-em-castle-at 0)
+  (disable-self))
+(defrule
+  (true)
+=>
+  (set-goal bli-em-knight bli-no)
+  (set-goal bli-em-knight-at 0)
+  (set-goal bli-em-archer bli-no)
+  (set-goal bli-em-archer-at 0)
+  (set-goal bli-em-monk bli-no)
+  (set-goal bli-em-monk-at 0)
+  (set-goal bli-em-forward bli-no)
+  (set-goal bli-em-forward-at 0)
+  (set-goal bli-enemy-located bli-no)
+  (set-goal bli-last-enemy-contact 0)
+  (set-goal bli-info-need bli-need-locate)
+  (set-goal bli-refresh-due bli-stale-secs)
+  (disable-self))
+
+; --- Prompt 3 interpretation + opponent model + prediction init ---
+(defrule
+  (true)
+=>
+  (set-goal bli-int-cav bli-inv-none)
+  (set-goal bli-int-archer bli-inv-none)
+  (set-goal bli-int-inf bli-inv-none)
+  (set-goal bli-int-siege-pressure bli-no)
+  (set-goal bli-int-castle-plan bli-no)
+  (set-goal bli-int-forward-pressure bli-no)
+  (set-goal bli-opp-main bli-opp-unknown)
+  (set-goal bli-opp-conf bli-conf-weak)
+  (set-goal bli-opp-mixed bli-no)
+  (set-goal bli-pred-cav-more bli-no)
+  (set-goal bli-pred-range-support bli-no)
+  (set-goal bli-pred-siege bli-no)
+  (set-goal bli-pred-castle-age bli-no)
+  (disable-self))
+
+; --- Prompt 4 map context + deviation latch init ---
+(defrule
+  (true)
+=>
+  (set-goal bli-map-closed bli-no)
+  (set-goal bli-map-nomad bli-no)
+  (set-goal bli-deviated bli-no)
+  (disable-self))
+
+; --- Prompt 5 economy focus init + Dark-age allocation (engine applies on first pass) ---
+(defrule
+  (true)
+=>
+  (set-goal bli-eco-focus bli-eco-balanced)
+  (set-strategic-number sn-food-gatherer-percentage 75)
+  (set-strategic-number sn-wood-gatherer-percentage 25)
+  (set-strategic-number sn-gold-gatherer-percentage 0)
+  (set-strategic-number sn-stone-gatherer-percentage 0)
+  (up-assign-builders c: house c: 1)
+  (up-assign-builders c: town-center-foundation c: 2)
+  (disable-self))
+
+; --- Prompt 6 composition demand + spike init ---
+(defrule
+  (true)
+=>
+  (set-goal bli-want-spear bli-no)
+  (set-goal bli-want-skirm bli-no)
+  (set-goal bli-want-archer bli-no)
+  (set-goal bli-want-scout bli-no)
+  (set-goal bli-want-knight bli-no)
+  (set-goal bli-want-monk bli-no)
+  (set-goal bli-want-siege bli-no)
+  (set-goal bli-power-own bli-no)
+  (disable-self))
+
+; --- C5: demand drivers and targets init ---
+(defrule
+  (true)
+=>
+  (set-goal bli-demand-spear 0)
+  (set-goal bli-demand-skirm 0)
+  (set-goal bli-demand-archer 0)
+  (set-goal bli-demand-scout 0)
+  (set-goal bli-demand-knight 0)
+  (set-goal bli-demand-monk 0)
+  (set-goal bli-demand-siege 0)
+  (set-goal bli-demand-mobile 0)
+  (set-goal bli-demand-cata 0)
+  (set-goal bli-demand-camel 0)
+  (disable-self))
+(defrule
+  (true)
+=>
+  (set-goal bli-target-spear 0)
+  (set-goal bli-target-skirm 0)
+  (set-goal bli-target-archer 0)
+  (set-goal bli-target-scout 0)
+  (set-goal bli-castle-research-started 0)
+  (set-goal bli-castle-bank-protected 0)
+  (set-goal bli-imperial-state bli-imperial-state-idle)
+  (set-goal bli-imperial-research-started 0)
+  (set-goal bli-target-knight 0)
+  (set-goal bli-target-monk 0)
+  (set-goal bli-target-siege 0)
+  (set-goal bli-target-mobile 0)
+  (set-goal bli-target-cata 0)
+  (set-goal bli-target-camel 0)
+  (set-goal bli-target-farms 0)
+  (set-goal bli-current-farms 0)
+  (set-goal bli-castle-state bli-castle-state-idle)
+  (set-goal bli-imperial-state bli-imperial-state-idle)
+  (disable-self))
+(defrule
+  (true)
+=>
+  (set-goal bli-pending-houses 0)
+  (set-goal bli-pending-barracks 0)
+  (set-goal bli-pending-ranges 0)
+  (set-goal bli-pending-stables 0)
+  (set-goal bli-pending-siege 0)
+  (set-goal bli-pending-monasteries 0)
+  (set-goal bli-pending-castles 0)
+  (set-goal bli-pending-markets 0)
+  (set-goal bli-pending-blacksmiths 0)
+  (set-goal bli-pending-universities 0)
+  (set-goal bli-pending-tcs 0)
+  (set-goal bli-pending-farms 0)
+  (set-goal bli-pending-lumber 0)
+  (set-goal bli-pending-mining 0)
+  (set-goal bli-pending-mills 0)
+  (set-goal bli-pending-palisades 0)
+  (set-goal bli-pending-gates 0)
+  (set-goal bli-pending-walls 0)
+  (disable-self))
+(defrule
+  (true)
+=>
+  (set-goal bli-role-spear-to-halb bli-no)
+  (set-goal bli-role-skirm-to-elite bli-no)
+  (set-goal bli-role-archer-to-xbow bli-no)
+  (set-goal bli-role-archer-to-arbalest bli-no)
+  (set-goal bli-role-scout-to-lightcav bli-no)
+  (set-goal bli-role-lightcav-to-hussar bli-no)
+  (set-goal bli-castle-state bli-castle-state-idle)
+  (set-goal bli-imperial-state bli-imperial-state-idle)
+  (set-goal bli-farmer-displaced-by-threat bli-no)
+  (set-goal bli-farmer-displaced-count 0)
+  (set-goal bli-food-deficit-critical bli-no)
+  (set-goal bli-farm-transition-state bli-farm-transition-idle)
+  (disable-self))
+
+; --- Prompt 7 stance + retreat init + targeting defaults (Naga-proven values) ---
+(defrule
+  (true)
+=>
+  (set-goal bli-stance bli-stance-hold)
+  (set-goal bli-retreat bli-no)
+  (set-strategic-number sn-percent-attack-soldiers 0)
+  (set-strategic-number sn-number-attack-groups 0)
+  (set-strategic-number sn-number-defend-groups 1)
+  (set-strategic-number sn-minimum-defend-group-size 3)
+  (set-strategic-number sn-maximum-defend-group-size 8)
+  (set-strategic-number sn-target-evaluation-siege-weapon 50)
+  (set-strategic-number sn-target-evaluation-damage-capability 20)
+  (set-strategic-number sn-target-evaluation-time-kill-ratio 50)
+  (set-strategic-number sn-target-evaluation-distance 0)
+  (set-strategic-number sn-target-evaluation-hitpoints 0)
+  (set-strategic-number sn-target-evaluation-randomness 0)
+  (up-set-defense-priority c: monk c: 3000)
+  (up-set-offense-priority c: monk c: 10)
+  (up-set-defense-priority c: mangonel-line c: 2000)
+  (up-set-offense-priority c: mangonel-line c: 9)
+  (up-set-defense-priority c: battering-ram-line c: 2000)
+  (up-set-offense-priority c: battering-ram-line c: 8)
+  (disable-self))
+
+; --- Prompt 8 raiding + relic init ---
+(defrule
+  (true)
+=>
+  (set-goal bli-raiding bli-no)
+  (set-goal bli-relic-seen bli-no)
+  (disable-self))
+
+; --- Prompt 9 verification + cataphract init ---
+(defrule
+  (true)
+=>
+  (set-goal bli-mpop-prev 0)
+  (set-goal bli-army-lost bli-no)
+  (set-goal bli-want-cata bli-no)
+  (disable-self))
+
+; --- Prompt 10 water + crisis + defeat init ---
+(defrule
+  (true)
+=>
+  (set-goal bli-map-water bli-no)
+  (set-goal bli-crisis bli-no)
+  (set-goal bli-defeated bli-no)
+  (disable-self))
+
+; --- Arbitration rebuild P1: ledger starts uncommitted ---
+(defrule
+  (true)
+=>
+  (set-goal bli-commit-id bli-no)
+  (set-goal bli-commit-food 0)
+  (set-goal bli-commit-gold 0)
+  (set-goal bli-spend-food 0)
+  (set-goal bli-spend-gold 0)
+  (disable-self))
+
+; --- Arbitration rebuild P2: food era starts on sheep ---
+(defrule
+  (true)
+=>
+  (set-goal bli-boar-mode bli-boar-sheep)
+  (set-goal bli-boar-at 0)
+  (disable-self))
+
+; --- Arbitration rebuild P4: age edge starts clean (equals live snapshot) ---
+(defrule
+  (true)
+=>
+  (set-goal bli-age-prev bli-age-dark)
+  (disable-self))
+
+; --- Content rebuild C1: trend starts flat ---
+(defrule
+  (true)
+=>
+  (set-goal bli-food-prev 0)
+  (set-goal bli-food-falling bli-no)
+  (set-goal bli-food-delta 0)
+  (disable-self))
+
+; --- Content rebuild C4: mobility starts unfunded ---
+(defrule
+  (true)
+=>
+  (set-goal bli-want-mobile bli-no)
+  (disable-self))
+
+; --- Content rebuild C5: objective clock starts clean ---
+(defrule
+  (true)
+=>
+  (set-goal bli-obj-farm-transition-missing bli-no)
+  (set-goal bli-obj-feudal-no-branch bli-no)
+  (set-goal bli-obj-castle-no-conversion bli-no)
+  (set-goal bli-obj-floating-unfunded bli-no)
+  (set-goal bli-obj-any-fail bli-no)
+  (disable-self))

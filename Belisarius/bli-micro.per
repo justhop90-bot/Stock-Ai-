@@ -1,0 +1,25 @@
+; Belisarius bli-micro.per — Prompt 7 PRACTICAL MICRO (high-impact only).
+; Only behaviors the engine executes consistently (§61): siege protection,
+; cavalry raid preservation is handled by stance (scouts never suicide into
+; the main fight), monk value via targeting priorities (set once in init).
+; No pixel-micro, no per-unit dance logic that would destabilize execution.
+
+; Siege must not sit under cavalry: pull mangonels back to the shop when the
+; enemy is inside and the screen is gone.
+(defrule
+  (up-compare-goal bli-enemy-in-town == bli-yes)
+  (unit-type-count-total mangonel-line >= 1)
+  (building-type-count-total siege-workshop >= 1)
+  (unit-type-count-total spearman-line <= 0)
+  (unit-type-count-total knight-line <= 0)
+=>
+  (up-retreat-to siege-workshop c: mangonel-line))
+; Monks have no business forward without an escort: pull them to the town
+; center when the enemy is inside and no army covers them.
+(defrule
+  (up-compare-goal bli-enemy-in-town == bli-yes)
+  (unit-type-count-total monk >= 1)
+  (building-type-count-total town-center >= 1)
+  (military-population < 5)
+=>
+  (up-retreat-to town-center c: monk))

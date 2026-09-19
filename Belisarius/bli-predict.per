@@ -1,0 +1,69 @@
+; Belisarius bli-predict.per — Prompt 3 PREDICTION.
+; Useful anticipation, not certainty. Strong evidence -> proactive prep flags
+; (consumed by Prompts 6+). Weak evidence -> conservative (flags stay no).
+; Defaults are no; triggers set yes. No flap by construction.
+
+; --- more cavalry coming while the investment is live ---
+(defrule
+  (or (up-compare-goal bli-int-cav == bli-inv-meaningful)
+    (up-compare-goal bli-int-cav == bli-inv-heavy))
+  (game-time < 1800)
+=>
+  (set-goal bli-pred-cav-more bli-yes))
+(defrule
+  (up-compare-goal bli-int-cav == bli-inv-none)
+=>
+  (set-goal bli-pred-cav-more bli-no))
+
+; --- ranged support behind cavalry (the §67 Knights + Archers case) ---
+(defrule
+  (or (up-compare-goal bli-opp-mixed == bli-yes)
+    (and (or (up-compare-goal bli-int-cav == bli-inv-meaningful)
+           (up-compare-goal bli-int-cav == bli-inv-heavy))
+      (or (up-compare-goal bli-em-range == bli-yes)
+        (game-time >= 600))))
+=>
+  (set-goal bli-pred-range-support bli-yes))
+(defrule
+  (up-compare-goal bli-opp-mixed == bli-no)
+  (up-compare-goal bli-int-cav == bli-inv-none)
+  (up-compare-goal bli-em-range == bli-no)
+=>
+  (set-goal bli-pred-range-support bli-no))
+
+; --- siege coming when pressure infrastructure exists ---
+(defrule
+  (or (up-compare-goal bli-int-siege-pressure == bli-yes)
+    (or (up-compare-goal bli-int-forward-pressure == bli-yes)
+      (and (up-compare-goal bli-em-siege == bli-yes)
+        (game-time >= 900))))
+=>
+  (set-goal bli-pred-siege bli-yes))
+(defrule
+  (up-compare-goal bli-int-siege-pressure == bli-no)
+  (up-compare-goal bli-int-forward-pressure == bli-no)
+  (up-compare-goal bli-em-siege == bli-no)
+=>
+  (set-goal bli-pred-siege bli-no))
+
+; --- Castle Age timing when feudal stays quiet (proxy: low commitment + mid clock) ---
+(defrule
+  (game-time >= 600)
+  (game-time < 1200)
+  (up-compare-goal bli-int-cav != bli-inv-meaningful)
+  (up-compare-goal bli-int-cav != bli-inv-heavy)
+  (up-compare-goal bli-int-archer != bli-inv-meaningful)
+  (up-compare-goal bli-int-archer != bli-inv-heavy)
+  (up-compare-goal bli-int-siege-pressure == bli-no)
+  (up-compare-goal bli-int-forward-pressure == bli-no)
+  (up-compare-goal bli-int-castle-plan == bli-no)
+=>
+  (set-goal bli-pred-castle-age bli-yes))
+(defrule
+  (or (game-time < 600)
+    (or (game-time >= 1200)
+      (or (up-compare-goal bli-int-castle-plan == bli-yes)
+        (or (up-compare-goal bli-int-siege-pressure == bli-yes)
+          (up-compare-goal bli-int-forward-pressure == bli-yes)))))
+=>
+  (set-goal bli-pred-castle-age bli-no))

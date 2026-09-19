@@ -1,0 +1,204 @@
+; Belisarius bli-cycle.per — Prompt 1 decision-loop skeleton.
+; OBSERVE -> INTERPRET -> PREDICT -> PRIORITIZE -> PLAN -> ACT -> VERIFY -> ADAPT -> OBSERVE.
+; Prompt 1 provides: snapshots, generation tick, phase sequencer, timescale separation.
+; Later prompts fill each phase without changing this authority structure (no duplicated authority).
+
+; --- OBSERVE (minimal reliable snapshot; full observation arrives Prompt 2) ---
+(defrule
+  (true)
+=>
+  (up-get-fact game-time 0 bli-game-time)
+  (up-get-fact population 0 bli-my-pop)
+  (up-get-fact civilian-population 0 bli-my-cpop)
+  (up-get-fact military-population 0 bli-my-mpop)
+  (up-get-fact unit-type-count-total villager bli-vill-count))
+
+; age snapshot tracks engine age for strategic invalidation (Prompt 4 owns strategy changes)
+(defrule
+  (current-age == dark-age)
+=>
+  (set-goal bli-age-snap bli-age-dark))
+(defrule
+  (current-age == feudal-age)
+=>
+  (set-goal bli-age-snap bli-age-feudal))
+(defrule
+  (current-age == castle-age)
+=>
+  (set-goal bli-age-snap bli-age-castle)
+  (set-goal bli-castle-state bli-castle-state-active))
+; Castle research completion: detect when research finishes and update state machine.
+; research-completed fires when the technology finishes.
+(defrule
+  (up-compare-goal bli-castle-state == bli-castle-state-researching)
+  (research-completed castle-age)
+=>
+  (set-goal bli-castle-state bli-castle-state-completed))
+; Also clear researchable/committed states when age actually changes to Castle
+(defrule
+  (current-age == castle-age)
+  (or (up-compare-goal bli-castle-state == bli-castle-state-researchable)
+    (up-compare-goal bli-castle-state == bli-castle-state-researching))
+=>
+  (set-goal bli-castle-state bli-castle-state-completed))
+(defrule
+  (current-age == imperial-age)
+=>
+  (set-goal bli-age-snap bli-age-imperial)
+  (set-goal bli-imperial-transition-state bli-imperial-transition-state-active))
+; Imperial research completion: detect when research finishes and update state machine.
+(defrule
+  (up-compare-goal bli-imperial-state == bli-imperial-state-researching)
+  (research-completed imperial-age)
+=>
+  (set-goal bli-imperial-state bli-imperial-state-completed))
+; Also clear researchable/committed states when age actually changes to Imperial
+(defrule
+  (current-age == imperial-age)
+  (or (up-compare-goal bli-imperial-state == bli-imperial-state-researchable)
+    (up-compare-goal bli-imperial-state == bli-imperial-state-researching))
+=>
+  (set-goal bli-imperial-state bli-imperial-state-completed))
+
+; ================= CASTLE STRATEGIC TRANSITION STATE MACHINE (P1) =================
+; Castle transition activates when Castle Age is reached, reassesses strategic needs
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-castle-state == bli-castle-state-completed)
+  (up-compare-goal bli-castle-state == bli-castle-state-idle)
+=>
+  (set-goal bli-castle-state bli-castle-state-active))
+
+; Castle transition active: reassess strategic needs
+; Food reassessment: Castle changes consumption profile
+(defrule
+  (up-compare-goal bli-castle-state == bli-castle-state-active)
+  (up-compare-goal bli-target-farms g:> building-type-count-total farm)
+  (wood-amount >= 60)
+  (can-build farm)
+  (up-pending-objects c: farm < 1)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build farm))
+
+; Production capacity reassessment: Castle introduces new unit lines
+; (Production rules in bli-production.per already check targets, transition state enables demand)
+; Technology demand: Castle requires University for Imperial prep
+(defrule
+  (up-compare-goal bli-castle-state == bli-castle-state-active)
+  (building-type-count-total university <= 0)
+  (can-build university)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build university))
+
+; Castle transition complete: strategic reassessment done
+(defrule
+  (up-compare-goal bli-castle-state == bli-castle-state-active)
+  (up-compare-goal bli-target-farms c:>= bli-target-farms)
+  (building-type-count-total university c:> 0)
+  (or (up-compare-goal bli-target-mobile c:<= 0)
+    (up-compare-goal bli-target-mobile c:<= building-type-count-total stable))
+  (or (up-compare-goal bli-target-siege c:<= 0)
+    (up-compare-goal bli-target-siege c:<= building-type-count-total siege-workshop))
+=>
+  (set-goal bli-castle-state bli-castle-state-complete))
+
+; ================= IMPERIAL STRATEGIC TRANSITION STATE MACHINE (P1) =================
+; Imperial transition activates when Imperial Age is reached
+(defrule
+  (current-age == imperial-age)
+  (up-compare-goal bli-imperial-state == bli-imperial-state-completed)
+  (up-compare-goal bli-imperial-state == bli-imperial-state-idle)
+=>
+  (set-goal bli-imperial-state bli-imperial-state-active))
+
+; Imperial transition active: reassess Imperial strategic needs
+; Food reassessment: Imperial consumption profile changes
+(defrule
+  (up-compare-goal bli-imperial-state == bli-imperial-state-active)
+  (up-compare-goal bli-target-farms g:> building-type-count-total farm)
+  (wood-amount >= 60)
+  (can-build farm)
+  (up-pending-objects c: farm < 1)
+  (up-compare-goal bli-imperial-state == bli-imperial-state-active)
+=>
+  (build farm))
+
+; Imperial production capacity reassessment
+; Imperial technologies create new production demands
+; (Production rules already check targets, transition state enables demand)
+
+; Imperial technology demand: Siege Engineers, Architecture
+; (Research rules in bli-upgrades.per already check Imperial age and targets)
+
+; Imperial transition complete: strategic reassessment done
+(defrule
+  (up-compare-goal bli-imperial-state == bli-imperial-state-active)
+  (up-compare-goal bli-target-farms c:>= bli-target-farms)
+  (or (building-type-count-total siege-workshop c:> 0)
+    (up-compare-goal bli-target-siege c:<= 0))
+  (or (building-type-count-total university c:> 0)
+    (up-compare-goal bli-target-archer c:<= 0))
+=>
+  (set-goal bli-imperial-state bli-imperial-state-complete))
+
+; ================= GENERATION TICK =================
+(defrule
+  (up-timer-status bli-timer-fast == timer-triggered)
+=>
+  (up-modify-goal bli-loop-generation c:+ 1)
+  (set-goal bli-loop-phase bli-phase-observe)
+  (enable-timer bli-timer-fast 5))
+
+; --- phase sequencer: advance one phase per pass so every phase runs each generation ---
+; Order is fixed: observe(0) interpret(1) predict(2) prioritize(3) plan(4) act(5) verify(6) adapt(7) -> observe.
+(defrule
+  (up-compare-goal bli-loop-phase == bli-phase-observe)
+=>
+  (set-goal bli-loop-phase bli-phase-interpret))
+(defrule
+  (up-compare-goal bli-loop-phase == bli-phase-interpret)
+=>
+  (set-goal bli-loop-phase bli-phase-predict))
+(defrule
+  (up-compare-goal bli-loop-phase == bli-phase-predict)
+=>
+  (set-goal bli-loop-phase bli-phase-prioritize))
+(defrule
+  (up-compare-goal bli-loop-phase == bli-phase-prioritize)
+=>
+  (set-goal bli-loop-phase bli-phase-plan))
+(defrule
+  (up-compare-goal bli-loop-phase == bli-phase-plan)
+=>
+  (set-goal bli-loop-phase bli-phase-act))
+(defrule
+  (up-compare-goal bli-loop-phase == bli-phase-act)
+=>
+  (set-goal bli-loop-phase bli-phase-verify))
+(defrule
+  (up-compare-goal bli-loop-phase == bli-phase-verify)
+=>
+  (up-modify-goal bli-last-verify-time g:= bli-game-time)
+  (set-goal bli-plan-valid bli-yes)
+  (set-goal bli-loop-phase bli-phase-adapt))
+(defrule
+  (up-compare-goal bli-loop-phase == bli-phase-adapt)
+=>
+  (set-goal bli-loop-phase bli-phase-observe))
+
+; --- timescale separation (spec 53/54): strategic plan persists, tactical refreshes ---
+; Strategic generation only advances on the slow timer. Prompt 4+ may also bump it on
+; genuine invalidation (age change, plan failure) — never on minor events.
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+=>
+  (up-modify-goal bli-strat-generation c:+ 1)
+  (enable-timer bli-timer-strat 60))
+
+; --- execution reliability guard (spec 62): re-arm econ timer instead of spamming orders ---
+(defrule
+  (up-timer-status bli-timer-econ == timer-triggered)
+=>
+  (enable-timer bli-timer-econ 3))

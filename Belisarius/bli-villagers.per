@@ -1,0 +1,190 @@
+; Belisarius bli-villagers.per — Prompt 5 VILLAGER MANAGEMENT + BUILDERS.
+; Authority: reassignment-by-percentages lives in bli-economy; this file owns
+; protection (militia), threat-sized response, and builder assignments.
+; It never trains villagers (bli-opening owns that) and never sets gatherer
+; percentages. Response reflects threat magnitude, not blind panic (§35).
+
+; ================= BUILDER PROTECTION & CONSTRUCTION CONTINUITY =================
+; Builders under light threat should NOT abandon construction.
+; Track buildings under construction and their assigned builders.
+; Only retreat builders when threat is genuinely overwhelming.
+
+; ================= BUILDER PROTECTION & CONSTRUCTION CONTINUITY =================
+; Builders under light threat should NOT abandon construction.
+; Track buildings under construction using pending-objects conditions directly in rules.
+; Only retreat builders when threat is genuinely overwhelming.
+
+; ================= MILITIA (small isolated threat: villagers defend) =================
+
+; Moderate threat (3-5 units): builders evacuate only if construction is near complete
+(defrule
+  (up-enemy-units-in-town >= 3)
+  (up-enemy-units-in-town <= 5)
+  (military-population < 8)
+  (or (current-age == dark-age)
+    (current-age == feudal-age))
+  (up-compare-goal bli-any-construction-pending == bli-yes)
+=>
+  (set-strategic-number sn-number-civilian-militia 0))
+
+; Heavy threat (6+ units or castle age): all civilians evacuate, construction abandoned
+(defrule
+  (or (up-enemy-units-in-town >= 6)
+    (current-age >= castle-age))
+  (up-compare-goal bli-any-construction-pending == bli-yes)
+=>
+  (set-strategic-number sn-number-civilian-militia 0))
+
+; Construction completion tracking: when building finishes, log it
+; Building destruction tracking: if building destroyed while under construction, flag for rebuild
+(defrule
+  (up-compare-goal bli-pending-houses > 0)
+  (building-type-count-total house > 0)
+=>
+  (set-goal bli-pending-houses 0))
+(defrule
+  (up-compare-goal bli-pending-barracks > 0)
+  (building-type-count-total barracks > 0)
+=>
+  (set-goal bli-pending-barracks 0))
+(defrule
+  (up-compare-goal bli-pending-ranges > 0)
+  (building-type-count-total archery-range > 0)
+=>
+  (set-goal bli-pending-ranges 0))
+(defrule
+  (up-compare-goal bli-pending-stables > 0)
+  (building-type-count-total stable > 0)
+=>
+  (set-goal bli-pending-stables 0))
+(defrule
+  (up-compare-goal bli-pending-siege > 0)
+  (building-type-count-total siege-workshop > 0)
+=>
+  (set-goal bli-pending-siege 0))
+(defrule
+  (up-compare-goal bli-pending-monasteries > 0)
+  (building-type-count-total monastery > 0)
+=>
+  (set-goal bli-pending-monasteries 0))
+(defrule
+  (up-compare-goal bli-pending-castles > 0)
+  (building-type-count-total castle > 0)
+=>
+  (set-goal bli-pending-castles 0))
+(defrule
+  (up-compare-goal bli-pending-markets > 0)
+  (building-type-count-total market > 0)
+=>
+  (set-goal bli-pending-markets 0))
+(defrule
+  (up-compare-goal bli-pending-blacksmiths > 0)
+  (building-type-count-total blacksmith > 0)
+=>
+  (set-goal bli-pending-blacksmiths 0))
+(defrule
+  (up-compare-goal bli-pending-universities > 0)
+  (building-type-count-total university > 0)
+=>
+  (set-goal bli-pending-universities 0))
+(defrule
+  (up-compare-goal bli-pending-tcs > 0)
+  (building-type-count-total town-center > 0)
+=>
+  (set-goal bli-pending-tcs 0))
+(defrule
+  (up-compare-goal bli-pending-markets > 0)
+  (building-type-count-total market > 0)
+=>
+  (set-goal bli-pending-markets 0))
+(defrule
+  (up-compare-goal bli-pending-blacksmiths > 0)
+  (building-type-count-total blacksmith > 0)
+=>
+  (set-goal bli-pending-blacksmiths 0))
+(defrule
+  (up-compare-goal bli-pending-universities > 0)
+  (building-type-count-total university > 0)
+=>
+  (set-goal bli-pending-universities 0))
+(defrule
+  (up-compare-goal bli-pending-tcs > 0)
+  (building-type-count-total town-center > 0)
+=>
+  (set-goal bli-pending-tcs 0))
+(defrule
+  (up-compare-goal bli-pending-farms > 0)
+  (building-type-count-total farm > 0)
+=>
+  (set-goal bli-pending-farms 0))
+(defrule
+  (up-compare-goal bli-pending-lumber > 0)
+  (building-type-count-total lumber-camp > 0)
+=>
+  (set-goal bli-pending-lumber 0))
+(defrule
+  (up-compare-goal bli-pending-mining > 0)
+  (building-type-count-total mining-camp > 0)
+=>
+  (set-goal bli-pending-mining 0))
+(defrule
+  (up-compare-goal bli-pending-mills > 0)
+  (building-type-count-total mill > 0)
+=>
+  (set-goal bli-pending-mills 0))
+(defrule
+  (up-compare-goal bli-pending-palisades > 0)
+  (building-type-count-total palisade-wall > 0)
+=>
+  (set-goal bli-pending-palisades 0))
+(defrule
+  (up-compare-goal bli-pending-gates > 0)
+  (building-type-count-total gate > 0)
+=>
+  (set-goal bli-pending-gates 0))
+(defrule
+  (up-compare-goal bli-pending-walls > 0)
+  (building-type-count-total stone-wall-line > 0)
+=>
+  (set-goal bli-pending-walls 0))
+
+; ================= MILITIA (small isolated threat: villagers defend) =================
+; 1-3 enemies inside with almost no army: fight with villagers, keep economy.
+(defrule
+  (up-enemy-units-in-town >= 1)
+  (up-enemy-units-in-town <= 3)
+  (military-population < 5)
+  (or (current-age == dark-age)
+    (current-age == feudal-age))
+=>
+  (set-strategic-number sn-allow-civilian-defense 1)
+  (set-strategic-number sn-number-civilian-militia 3))
+; Larger or later threat: villagers are not the answer (army/defense own it).
+(defrule
+  (or (up-enemy-units-in-town >= 4)
+    (or (military-population >= 5)
+      (current-age >= castle-age)))
+  (strategic-number sn-number-civilian-militia >= 1)
+=>
+  (set-strategic-number sn-number-civilian-militia 0))
+; Stand down once cleared.
+(defrule
+  (up-enemy-units-in-town <= 0)
+  (not (town-under-attack))
+  (strategic-number sn-number-civilian-militia >= 1)
+=>
+  (set-strategic-number sn-number-civilian-militia 0))
+
+; ================= RAID REPLACEMENT (recognize the economic consequence) =================
+; Raiders killed villagers: the loss is already counted in bli-vill-count
+; snapshots; opening caps retrain automatically. Here, shift wood toward
+; recovery (farms were likely idled) instead of merely waiting.
+(defrule
+  (up-compare-goal bli-enemy-in-town == bli-yes)
+  (civilian-population < 25)
+  (current-age == feudal-age)
+  (wood-amount >= 120)
+  (can-build farm)
+  (idle-farm-count <= 1)
+=>
+  (build farm))

@@ -1,0 +1,142 @@
+; Belisarius bli-tactics.per — Prompt 7 FIGHT SELECTION + STANCE.
+; Authority: this file alone owns bli-stance and attack-now launches.
+; Prompt 8 will own WHERE/WHAT to hit (raid targets, forward points); here
+; decides WHETHER the army fights at all. Hold is the default; engagement
+; needs a favorable read or a spike. attack-now is timer-gated (12s) so
+; units act instead of stuttering on repeated orders (§62).
+
+; ================= STATIC DEFENSE AVOIDANCE =================
+; Detect static defense zones (enemy TC, Castle, Tower) and avoid suicidal engagement
+; Castle/TC zones are dangerous - only engage if we have siege or overwhelming force
+(defrule
+  (up-compare-goal bli-enemy-in-town == bli-yes)
+  (up-compare-goal bli-int-forward-pressure == bli-yes)
+  (military-population < 15)
+  (up-compare-goal bli-int-siege-pressure == bli-no)
+  (unit-type-count-total mangonel-line < 2)
+  (unit-type-count-total battering-ram-line < 2)
+=>
+  (set-goal bli-stance bli-stance-hold))
+
+; Avoid enemy castle zone unless we have siege or overwhelming force
+(defrule
+  (up-compare-goal bli-em-castle == bli-yes)
+  (military-population < 20)
+  (unit-type-count-total mangonel-line < 2)
+  (unit-type-count-total battering-ram-line < 2)
+  (up-compare-goal bli-int-siege-pressure == bli-no)
+=>
+  (set-goal bli-stance bli-stance-hold))
+
+; ================= TARGET PRIORITY: EXPOSED VILLAGERS > MILITARY > STRUCTURES =================
+; Exposed enemy villagers are highest priority when reachable without suicidal exposure
+; Target selection logic handled by attack-move priority SNs (see bli-init)
+; But stance logic here prevents suicidal attacks
+
+; ================= FAVORABLE (engage) =================
+; Own spike with an army standing and no chaos at home: exploit it now.
+(defrule
+  (up-compare-goal bli-power-own == bli-yes)
+  (military-population >= 10)
+  (up-compare-goal bli-enemy-in-town == bli-no)
+  (up-compare-goal bli-retreat == bli-no)
+  (up-compare-goal bli-army-lost == bli-no)
+=>
+  (set-goal bli-stance bli-stance-engage))
+; Clear superiority vs a weak read, no siege threat seen or predicted: take the fight.
+(defrule
+  (military-population >= 15)
+  (up-compare-goal bli-opp-conf <= bli-conf-moderate)
+  (up-compare-goal bli-int-siege-pressure == bli-no)
+  (up-compare-goal bli-pred-siege == bli-no)
+  (up-compare-goal bli-enemy-in-town == bli-no)
+  (up-compare-goal bli-retreat == bli-no)
+  (up-compare-goal bli-army-lost == bli-no)
+=>
+  (set-goal bli-stance bli-stance-engage))
+; Enemy forward inside our radius with a real army to kill it: engage locally.
+(defrule
+  (up-compare-goal bli-int-forward-pressure == bli-yes)
+  (military-population >= 8)
+  (up-compare-goal bli-retreat == bli-no)
+  (up-compare-goal bli-army-lost == bli-no)
+=>
+  (set-goal bli-stance bli-stance-engage))
+
+; ================= UNFAVORABLE (hold, preserve, defend) =================
+; Too small to fight anywhere: hold and grow (never feed one by one).
+(defrule
+  (military-population < 8)
+  (up-compare-goal bli-int-forward-pressure == bli-no)
+  (up-compare-goal bli-power-own == bli-no)
+=>
+  (set-goal bli-stance bli-stance-hold))
+; Enemy inside with a thin army: defend the town, do not march out.
+(defrule
+  (up-compare-goal bli-enemy-in-town == bli-yes)
+  (military-population < 12)
+=>
+  (set-goal bli-stance bli-stance-hold))
+; Verified wipe (§41): preserve whatever survived, rebuild before refighting.
+(defrule
+  (up-compare-goal bli-army-lost == bli-yes)
+=>
+  (set-goal bli-stance bli-stance-hold))
+; Retreating overrides everything.
+(defrule
+  (up-compare-goal bli-retreat == bli-yes)
+=>
+  (set-goal bli-stance bli-stance-hold))
+
+; ================= EXECUTION (settings follow stance; orders are timer-gated) =================
+; Plain hold: everything home, town defended.
+(defrule
+  (up-compare-goal bli-stance == bli-stance-hold)
+  (up-compare-goal bli-raiding == bli-no)
+=>
+  (set-strategic-number sn-percent-attack-soldiers 0)
+  (set-strategic-number sn-number-attack-groups 0)
+  (set-strategic-number sn-number-defend-groups 1)
+  (up-set-attack-stance -1 c: stance-defensive))
+; Hold with raiders out: a small mobile group harasses exposed economy (§24)
+; while the main body stays home. Small sizes so it raids, never commits.
+(defrule
+  (up-compare-goal bli-stance == bli-stance-hold)
+  (up-compare-goal bli-raiding == bli-yes)
+=>
+  (set-strategic-number sn-number-defend-groups 1)
+  (set-strategic-number sn-number-attack-groups 1)
+  (set-strategic-number sn-percent-attack-soldiers 30)
+  (set-strategic-number sn-minimum-attack-group-size 2)
+  (set-strategic-number sn-maximum-attack-group-size 4)
+  (up-set-attack-stance -1 c: stance-defensive))
+(defrule
+  (up-compare-goal bli-stance == bli-stance-engage)
+  (or (military-population < 25)
+    (and (unit-type-count-total scout-cavalry-line < 4)
+      (unit-type-count-total knight-line < 4)))
+=>
+  (set-strategic-number sn-number-attack-groups 1)
+  (set-strategic-number sn-number-defend-groups 0)
+  (set-strategic-number sn-percent-attack-soldiers 100)
+  (set-strategic-number sn-minimum-attack-group-size 5)
+  (set-strategic-number sn-maximum-attack-group-size 20))
+; Multi-pronged pressure (§25): a large mobile army splits in two so the
+; opponent must choose which problem to solve. Never with a small force.
+(defrule
+  (up-compare-goal bli-stance == bli-stance-engage)
+  (military-population >= 25)
+  (or (unit-type-count-total scout-cavalry-line >= 4)
+    (unit-type-count-total knight-line >= 4))
+=>
+  (set-strategic-number sn-number-attack-groups 2)
+  (set-strategic-number sn-number-defend-groups 0)
+  (set-strategic-number sn-percent-attack-soldiers 100)
+  (set-strategic-number sn-minimum-attack-group-size 5)
+  (set-strategic-number sn-maximum-attack-group-size 15))
+(defrule
+  (up-compare-goal bli-stance == bli-stance-engage)
+  (up-timer-status bli-timer-stance != timer-running)
+=>
+  (attack-now)
+  (enable-timer bli-timer-stance 12))

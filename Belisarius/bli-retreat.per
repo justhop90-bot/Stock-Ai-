@@ -1,0 +1,45 @@
+; Belisarius bli-retreat.per — Prompt 7 RETREAT + DISENGAGEMENT.
+; Practical conditions on the military situation, never one universal percent.
+; Execution follows the Naga-proven discipline: timer-gated (16s), zero the
+; attack settings, defensive stance, single up-retreat-now, regroup at home.
+; Never retreat-and-return without change: bli-retreat latches until safe.
+
+; ================= TRIGGERS (latch on) =================
+; Overrun town with almost no army left: save what can be saved.
+(defrule
+  (town-under-attack)
+  (up-compare-goal bli-enemy-in-town == bli-yes)
+  (military-population < 5)
+  (game-time > 300)
+  (up-compare-goal bli-retreat == bli-no)
+=>
+  (set-goal bli-retreat bli-yes))
+; Forward siege pressure grinding a tiny force: disengage, regroup, rethink.
+(defrule
+  (up-compare-goal bli-int-forward-pressure == bli-yes)
+  (up-compare-goal bli-int-siege-pressure == bli-yes)
+  (military-population < 8)
+  (military-population >= 1)
+  (up-compare-goal bli-retreat == bli-no)
+=>
+  (set-goal bli-retreat bli-yes))
+
+; ================= RELEASE (latch off only when actually safe) =================
+(defrule
+  (up-compare-goal bli-retreat == bli-yes)
+  (up-compare-goal bli-enemy-in-town == bli-no)
+  (not (town-under-attack))
+=>
+  (set-goal bli-retreat bli-no))
+
+; ================= EXECUTION (timer-gated, Naga pattern) =================
+(defrule
+  (up-compare-goal bli-retreat == bli-yes)
+  (up-timer-status bli-timer-retreat != timer-running)
+=>
+  (set-strategic-number sn-percent-attack-soldiers 0)
+  (set-strategic-number sn-number-attack-groups 0)
+  (set-strategic-number sn-number-defend-groups 1)
+  (up-set-attack-stance -1 c: stance-defensive)
+  (up-retreat-now)
+  (enable-timer bli-timer-retreat 16))

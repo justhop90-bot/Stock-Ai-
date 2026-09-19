@@ -1,0 +1,151 @@
+; Belisarius bli-commit.per — ARBITRATION P1: resource commitment ledger.
+; Authority: this file alone owns bli-commit-id/food/gold and bli-spend-*.
+; spendable = stockpile - committed. Training/research/age rules gate on
+; spendable instead of raw stockpile, so the bank survives contact with the
+; rest of the script. Cancellation releases the bank when survival outranks it.
+;
+; Why a ledger, not escrow percentages: our train/research commands address
+; the stockpile; parking income in escrow without converting every one of
+; them to escrow-state commands stalls the TC. The ledger protects the same
+; money with the commands we already execute reliably. If bank leakage shows
+; in testing, escrow-state conversion is the documented next step.
+; File order is load-bearing: select -> fulfill -> ledger -> cancel (last wins).
+
+; ================= SELECTION =================
+; Feudal bank: strategy known, eco rolling. 500 food belongs to Feudal now.
+(defrule
+  (current-age == dark-age)
+  (up-compare-goal bli-strategy != bli-strat-unset)
+  (unit-type-count-total villager >= 15)
+  (up-compare-goal bli-commit-id == bli-no)
+=>
+  (set-goal bli-commit-id bli-commit-feudal)
+  (set-goal bli-commit-food 500)
+  (set-goal bli-commit-gold 0))
+; Castle bank, greedy plans: commit as soon as the eco exists.
+(defrule
+  (current-age == feudal-age)
+  (or (up-compare-goal bli-strategy == bli-strat-fast-castle)
+    (up-compare-goal bli-strategy == bli-strat-defensive-boom))
+  (unit-type-count-total villager >= 25)
+  (up-compare-goal bli-commit-id == bli-no)
+  (up-compare-goal bli-retreat == bli-no)
+  (up-compare-goal bli-crisis == bli-no)
+=>
+  (set-goal bli-commit-id bli-commit-castle)
+  (set-goal bli-commit-food 800)
+  (set-goal bli-commit-gold 200))
+; Castle bank, pressure plans: pressure first, then bank behind the army.
+(defrule
+  (current-age == feudal-age)
+  (up-compare-goal bli-strategy != bli-strat-fast-castle)
+  (up-compare-goal bli-strategy != bli-strat-defensive-boom)
+  (unit-type-count-total villager >= 32)
+  (or (military-population >= 10)
+    (game-time >= 900))
+  (up-compare-goal bli-commit-id == bli-no)
+  (up-compare-goal bli-retreat == bli-no)
+  (up-compare-goal bli-crisis == bli-no)
+=>
+  (set-goal bli-commit-id bli-commit-castle)
+  (set-goal bli-commit-food 800)
+  (set-goal bli-commit-gold 200))
+; Castle bank, pressure plans under attack: commit earlier to survive.
+(defrule
+  (current-age == feudal-age)
+  (up-compare-goal bli-strategy != bli-strat-fast-castle)
+  (up-compare-goal bli-strategy != bli-strat-defensive-boom)
+  (unit-type-count-total villager >= 28)
+  (up-compare-goal bli-enemy-in-town == bli-yes)
+  (military-population < 5)
+  (up-compare-goal bli-commit-id == bli-no)
+  (up-compare-goal bli-retreat == bli-no)
+=>
+  (set-goal bli-commit-id bli-commit-castle)
+  (set-goal bli-commit-food 800)
+  (set-goal bli-commit-gold 200))
+; Imperial bank: only with an army that can survive the transition.
+(defrule
+  (current-age == castle-age)
+  (unit-type-count-total villager >= 50)
+  (military-population >= 8)
+  (up-compare-goal bli-commit-id == bli-no)
+  (up-compare-goal bli-retreat == bli-no)
+  (up-compare-goal bli-crisis == bli-no)
+=>
+  (set-goal bli-commit-id bli-commit-imperial)
+  (set-goal bli-commit-food 1000)
+  (set-goal bli-commit-gold 800)
+  (set-goal bli-imperial-state bli-imperial-state-committed))
+; Imperial commitment: transition to researchable when prerequisites met
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-imperial-state == bli-imperial-state-committed)
+  (or (building-type-count-total university >= 1)
+    (building-type-count-total castle >= 1))
+  (up-compare-goal bli-imperial-state != bli-imperial-state-researchable)
+=>
+  (set-goal bli-imperial-state bli-imperial-state-researchable))
+
+; ================= FULFILLMENT (bank reached its age: release) =================
+(defrule
+  (current-age != dark-age)
+  (up-compare-goal bli-commit-id == bli-commit-feudal)
+=>
+  (set-goal bli-commit-id bli-no)
+  (set-goal bli-commit-food 0)
+  (set-goal bli-commit-gold 0))
+(defrule
+  (or (current-age == castle-age)
+    (current-age == imperial-age))
+  (up-compare-goal bli-commit-id == bli-commit-castle)
+=>
+  (set-goal bli-commit-id bli-no)
+  (set-goal bli-commit-food 0)
+  (set-goal bli-commit-gold 0))
+(defrule
+  (current-age == imperial-age)
+  (up-compare-goal bli-commit-id == bli-commit-imperial)
+=>
+  (set-goal bli-commit-id bli-no)
+  (set-goal bli-commit-food 0)
+  (set-goal bli-commit-gold 0)
+  (set-goal bli-imperial-state bli-imperial-state-completed))
+
+; ================= LEDGER (spendable recomputed every pass) =================
+; Negative is fine: every gate uses >= against it, so debt reads as "nothing
+; spendable" with no clamp rule required.
+(defrule
+  (true)
+=>
+  (up-get-fact food-amount 0 bli-spend-food)
+  (up-modify-goal bli-spend-food g:- bli-commit-food))
+(defrule
+  (true)
+=>
+  (up-get-fact gold-amount 0 bli-spend-gold)
+  (up-modify-goal bli-spend-gold g:- bli-commit-gold))
+
+; ================= CANCELLATION (survival outranks the bank; fires last) =================
+; Cancel for crisis or when enemy in town with some military but not enough to survive
+; Do NOT cancel if military == 0 and enemy in town: we need to age up for survival.
+(defrule
+  (up-compare-goal bli-crisis == bli-yes)
+  (up-compare-goal bli-commit-id != bli-no)
+=>
+  (set-goal bli-commit-id bli-no)
+  (set-goal bli-commit-food 0)
+  (set-goal bli-commit-gold 0)
+  (set-goal bli-castle-state bli-castle-state-idle)
+  (set-goal bli-imperial-state bli-imperial-state-idle))
+(defrule
+  (and (up-compare-goal bli-enemy-in-town == bli-yes)
+    (and (military-population >= 1)
+      (military-population < 5)))
+  (up-compare-goal bli-commit-id != bli-no)
+=>
+  (set-goal bli-commit-id bli-no)
+  (set-goal bli-commit-food 0)
+  (set-goal bli-commit-gold 0)
+  (set-goal bli-castle-state bli-castle-state-idle)
+  (set-goal bli-imperial-state bli-imperial-state-idle))

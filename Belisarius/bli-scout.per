@@ -1,0 +1,76 @@
+; Belisarius bli-scout.per — Prompt 2 SCOUTING AS INFORMATION GATHERING.
+; The scout answers the strategy's next question, not random terrain.
+; Priority: locate enemy -> identify production -> refresh stale memory.
+; Preservation: keep exactly one explorer; never suicide extra scouts.
+
+; --- what information is needed next? ---
+(defrule
+  (up-compare-goal bli-enemy-located == bli-no)
+=>
+  (set-goal bli-info-need bli-need-locate))
+(defrule
+  (up-compare-goal bli-enemy-located == bli-yes)
+  (up-compare-goal bli-em-stable == bli-no)
+  (up-compare-goal bli-em-range == bli-no)
+  (up-compare-goal bli-em-barracks == bli-no)
+  (game-time >= 300)
+=>
+  (set-goal bli-info-need bli-need-production))
+(defrule
+  (up-compare-goal bli-enemy-located == bli-yes)
+  (up-compare-goal bli-em-stable == bli-no)
+  (up-compare-goal bli-em-range == bli-no)
+  (up-compare-goal bli-em-barracks == bli-no)
+  (game-time < 300)
+=>
+  (set-goal bli-info-need bli-need-locate))
+(defrule
+  (up-compare-goal bli-enemy-located == bli-yes)
+  (or (up-compare-goal bli-em-stable == bli-yes)
+    (or (up-compare-goal bli-em-range == bli-yes)
+      (up-compare-goal bli-em-barracks == bli-yes)))
+  (up-compare-goal bli-game-time g:>= bli-refresh-due)
+=>
+  (set-goal bli-info-need bli-need-refresh))
+(defrule
+  (up-compare-goal bli-enemy-located == bli-yes)
+  (or (up-compare-goal bli-em-stable == bli-yes)
+    (or (up-compare-goal bli-em-range == bli-yes)
+      (up-compare-goal bli-em-barracks == bli-yes)))
+  (up-compare-goal bli-refresh-due g:> bli-game-time)
+  (up-compare-goal bli-info-need == bli-need-refresh)
+=>
+  (set-goal bli-info-need bli-need-none))
+
+; --- transition reassessment (P4 hook): a new age asks new questions ---
+; On the age edge, expire the refresh deadline so the scout re-reads enemy
+; production instead of coasting on pre-transition memory. Persists until
+; fresh contact re-arms it — the scout actually goes, not a one-pass nudge.
+(defrule
+  (up-compare-goal bli-age-snap != bli-age-prev)
+=>
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-age-prev g:= bli-age-snap))
+
+; --- act on the need through the engine's explore system (reliable execution) ---
+; Locate/production/refresh all require active exploration.
+(defrule
+  (or (up-compare-goal bli-info-need == bli-need-locate)
+    (or (up-compare-goal bli-info-need == bli-need-production)
+      (up-compare-goal bli-info-need == bli-need-refresh)))
+  (strategic-number sn-number-explore-groups <= 0)
+=>
+  (set-strategic-number sn-number-explore-groups 1)
+  (set-strategic-number sn-total-number-explorers 1)
+  (set-strategic-number sn-minimum-explore-group-size 1)
+  (set-strategic-number sn-maximum-explore-group-size 1))
+
+; --- preservation: if our scout line is gone and we still need info, hold one group ---
+; The engine keeps the single explorer; this rule avoids feeding villagers as scouts.
+(defrule
+  (unit-type-count-total scout-cavalry-line <= 0)
+  (unit-type-count-total eagle-scout <= 0)
+  (or (up-compare-goal bli-info-need == bli-need-locate)
+    (up-compare-goal bli-info-need == bli-need-production))
+=>
+  (set-strategic-number sn-number-explore-groups 1))

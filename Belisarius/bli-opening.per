@@ -1,0 +1,271 @@
+; Belisarius bli-opening.per — BUILD-ORDER EXECUTION (C2: the scripted skeleton).
+; Authority: villager continuity at every age, houses, loom, dropsites, early
+; military infra, age-ups. The Dark skeleton is deliberately uncreative:
+; sheep->boar food, lumber@7, mill@10, gold@15, barracks@16, loom@22,
+; Feudal@21 — then Feudal branches and Castle goes conditional.
+; Rule: never continue a step solely because the order says so (deviation
+; guards below); never abandon a sound plan on a minor observation.
+
+; ================= VILLAGER CONTINUITY (accidental idle is the enemy) =================
+; Caps are opening-only; Prompt 5 raises them. Saving-for-age is handled by
+; the age rules (they fire when affordable, so holding vills is never needed).
+(defrule
+  (current-age == dark-age)
+  (can-train villager)
+  (unit-type-count-total villager < 30)
+=>
+  (train villager))
+(defrule
+  (current-age == feudal-age)
+  (can-train villager)
+  (unit-type-count-total villager < 45)
+  (up-compare-goal bli-int-forward-pressure == bli-no)
+=>
+  (train villager))
+; Under forward pressure keep the TC working unless the town is overrun.
+(defrule
+  (current-age == feudal-age)
+  (can-train villager)
+  (unit-type-count-total villager < 38)
+  (up-compare-goal bli-int-forward-pressure == bli-yes)
+  (up-compare-goal bli-enemy-in-town == bli-no)
+=>
+  (train villager))
+; Castle/Imperial flood (C2 gap fix: no rule produced villagers past Feudal,
+; so TCs — including boom TCs — idled). Site-ready gating orders idle TCs
+; only: no queue buildup, multiple TCs fill over consecutive passes.
+(defrule
+  (current-age == castle-age)
+  (up-train-site-ready c: villager)
+  (can-train villager)
+  (unit-type-count-total villager < 100)
+=>
+  (train villager))
+(defrule
+  (current-age == imperial-age)
+  (up-train-site-ready c: villager)
+  (can-train villager)
+  (unit-type-count-total villager < 120)
+=>
+  (train villager))
+
+; ================= HOUSES (standard headroom guards, Naga-proven) =================
+(defrule
+  (housing-headroom < 3)
+  (population-headroom > 0)
+  (can-build house)
+=>
+  (build house))
+(defrule
+  (housing-headroom <= 0)
+  (population-headroom >= 1)
+  (can-build house)
+=>
+  (build house))
+
+; ================= LOOM (timed, plus emergency under attack) =================
+(defrule
+  (current-age == dark-age)
+  (can-research ri-loom)
+  (unit-type-count-total villager >= 22)
+=>
+  (research ri-loom))
+(defrule
+  (town-under-attack)
+  (can-research ri-loom)
+=>
+  (research ri-loom))
+
+; ================= DROPSITES (Dark foundations for every strategy) =================
+(defrule
+  (current-age == dark-age)
+  (building-type-count-total lumber-camp <= 0)
+  (can-build lumber-camp)
+  (unit-type-count-total villager >= 7)
+=>
+  (build lumber-camp))
+(defrule
+  (current-age == dark-age)
+  (building-type-count-total mill <= 0)
+  (can-build mill)
+  (unit-type-count-total villager >= 10)
+=>
+  (build mill))
+; Gold camp only when the strategy spends gold early (not for a pure boom open).
+(defrule
+  (current-age == dark-age)
+  (building-type-count-total mining-camp <= 0)
+  (can-build mining-camp)
+  (unit-type-count-total villager >= 15)
+  (or (up-compare-goal bli-strategy == bli-strat-scout-pressure)
+    (or (up-compare-goal bli-strategy == bli-strat-archer-pressure)
+      (up-compare-goal bli-strategy == bli-strat-fast-castle)))
+=>
+  (build mining-camp))
+
+; ================= EARLY MILITARY INFRA (P4: demand-gated, one each) =================
+; Buildings are consequences of unit demand, never of the strategy label.
+; Barracks has two legitimate parents: spear demand, or the Feudal age
+; requirement (timed at 16 villagers). Stable/Range have exactly one: the
+; corresponding target count. Emergency forward keeps its own rule below.
+(defrule
+  (building-type-count-total barracks <= 0)
+  (can-build barracks)
+  (or (up-compare-goal bli-target-spear c:> 0)
+    (and (current-age == dark-age)
+      (unit-type-count-total villager >= 16)))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build barracks))
+; Forward enemy building in Dark: emergency barracks regardless of demand.
+(defrule
+  (current-age == dark-age)
+  (building-type-count-total barracks <= 0)
+  (can-build barracks)
+  (up-compare-goal bli-em-forward == bli-yes)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build barracks))
+; Objective clock (C5): Feudal at 16:00 with no army and no Barracks means the
+; branch never materialized — build the capacity first, demand will use it.
+(defrule
+  (current-age == feudal-age)
+  (game-time > 960)
+  (military-population <= 0)
+  (building-type-count-total barracks <= 0)
+  (can-build barracks)
+  (wood-amount >= 175)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build barracks))
+(defrule
+  (up-compare-goal bli-target-scout c:> 0)
+  (building-type-count-total stable <= 0)
+  (can-build stable)
+  (building-type-count-total barracks >= 1)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build stable))
+; Knight response in Feudal requires Stable — separate obligation from scouts.
+(defrule
+  (up-compare-goal bli-target-knight c:> 0)
+  (building-type-count-total stable <= 0)
+  (can-build stable)
+  (building-type-count-total barracks >= 1)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build stable))
+(defrule
+  (up-compare-goal bli-target-archer c:> 0)
+  (building-type-count-total archery-range <= 0)
+  (can-build archery-range)
+  (building-type-count-total barracks >= 1)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build archery-range))
+; Skirmisher response also requires Range — separate obligation from archers.
+(defrule
+  (up-compare-goal bli-target-skirm c:> 0)
+  (up-compare-goal bli-target-archer c:< 1)
+  (building-type-count-total archery-range <= 0)
+  (can-build archery-range)
+  (building-type-count-total barracks >= 1)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build archery-range))
+; Fast Castle needs market + blacksmith in Feudal; build each once.
+; Rebuilt in P3 as commitment-driven: ANY Castle-bound plan prepares the
+; click infrastructure before the bank completes, so can-research never waits
+; on a missing building. (Replaces the old strategy-only version.)
+(defrule
+  (up-compare-goal bli-commit-id == bli-commit-castle)
+  (current-age == feudal-age)
+  (building-type-count-total market <= 0)
+  (can-build market)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build market))
+(defrule
+  (up-compare-goal bli-commit-id == bli-commit-castle)
+  (current-age == feudal-age)
+  (building-type-count-total blacksmith <= 0)
+  (can-build blacksmith)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build blacksmith))
+; Secure gold the same way: no mining camp, no Castle timing.
+(defrule
+  (up-compare-goal bli-commit-id == bli-commit-castle)
+  (current-age == feudal-age)
+  (building-type-count-total mining-camp <= 0)
+  (can-build mining-camp)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build mining-camp))
+
+; ================= AGE-UPS (QUALIFY: the click follows the commitment) =================
+; Feudal is a strategic commitment, not a stockpile check. The bank (500 food)
+; was reserved by bli-commit; the click fires only while it stands, so a
+; cancelled commitment can never be clicked through.
+(defrule
+  (can-research feudal-age)
+  (unit-type-count-total villager >= 21)
+  (up-compare-goal bli-commit-id == bli-commit-feudal)
+=>
+  (research feudal-age))
+; Castle prerequisite check: must have required Feudal buildings before clicking up.
+; Standard Castle requirement: 2 Feudal buildings (Barracks, Archery Range, Stable, Siege Workshop, Market, Blacksmith)
+; We track this as a state to avoid re-checking every pass.
+(defrule
+  (current-age == feudal-age)
+  (up-compare-goal bli-commit-id == bli-commit-castle)
+  (or (building-type-count-total barracks >= 1)
+    (or (building-type-count-total archery-range >= 1)
+      (or (building-type-count-total stable >= 1)
+        (or (building-type-count-total siege-workshop >= 1)
+          (or (building-type-count-total market >= 1)
+            (or (building-type-count-total blacksmith >= 1)
+              (building-type-count-total university >= 1)))))))
+=>
+  (set-goal bli-castle-state bli-castle-state-researchable))
+; Clear researchable state if we lose the prerequisites (shouldn't happen but safety)
+(defrule
+  (up-compare-goal bli-castle-state == bli-castle-state-researchable)
+  (not (or (building-type-count-total barracks >= 1)
+    (or (building-type-count-total archery-range >= 1)
+      (or (building-type-count-total stable >= 1)
+        (or (building-type-count-total siege-workshop >= 1)
+          (or (building-type-count-total market >= 1)
+            (or (building-type-count-total blacksmith >= 1)
+              (building-type-count-total university >= 1))))))))
+=>
+  (set-goal bli-castle-state bli-castle-state-committed))
+; Castle: normal timing when the economy survives; hold when the enemy is
+; inside and the army cannot cover the cost (deliberate idle, not breakage).
+; Same commitment discipline: no bank, no click.
+; Uses can-research-with-escrow pattern to protect the Castle bank.
+(defrule
+  (can-research castle-age)
+  (can-research-with-escrow castle-age)
+  (unit-type-count-total villager >= 35)
+  (up-compare-goal bli-enemy-in-town == bli-no)
+  (up-compare-goal bli-commit-id == bli-commit-castle)
+  (up-compare-goal bli-castle-state == bli-castle-state-researchable)
+=>
+  (set-goal bli-castle-state bli-castle-state-researching)
+  (release-escrow food)
+  (release-escrow gold)
+  (research castle-age))
+(defrule
+  (can-research castle-age)
+  (can-research-with-escrow castle-age)
+  (unit-type-count-total villager >= 42)
+  (up-compare-goal bli-enemy-in-town == bli-yes)
+  (military-population >= 5)
+  (up-compare-goal bli-commit-id == bli-commit-castle)
+  (up-compare-goal bli-castle-state == bli-castle-state-researchable)
+=>
+  (set-goal bli-castle-state bli-castle-state-researching)
+  (release-escrow food)
+  (release-escrow gold)
+  (research castle-age))

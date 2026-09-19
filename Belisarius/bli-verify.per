@@ -1,0 +1,126 @@
+; Belisarius bli-verify.per — Prompt 9 VERIFICATION (§38) + OBJECTIVE CLOCK (C5).
+; Tracks army survival and diagnoses strategic execution on the strategic tick.
+
+; --- baseline follows reality on the strategic timescale ---
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+=>
+  (up-modify-goal bli-mpop-prev g:= bli-my-mpop))
+
+; --- halving math in scratch (goal-vs-goal compares only, engine-safe) ---
+(defrule
+  (true)
+=>
+  (up-get-fact military-population 0 bli-tmp2)
+  (up-modify-goal bli-tmp2 c:* 2))
+
+; --- lost half the army or more from a real force: the plan failed ---
+(defrule
+  (up-compare-goal bli-mpop-prev >= 10)
+  (up-compare-goal bli-tmp2 g:< bli-mpop-prev)
+=>
+  (set-goal bli-army-lost bli-yes))
+; --- rebuilt or never truly lost: clear ---
+(defrule
+  (or (up-compare-goal bli-mpop-prev < 10)
+    (up-compare-goal bli-tmp2 g:>= bli-mpop-prev))
+=>
+  (set-goal bli-army-lost bli-no))
+
+; ================= OBJECTIVE CLOCK (C5: strategic tick diagnosis) =================
+; Diagnoses: what is the player trying to accomplish, and is it working?
+; Clears each tick; rules below set what applies.
+
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+=>
+  (set-goal bli-obj-farm-transition-missing bli-no)
+  (set-goal bli-obj-feudal-no-branch bli-no)
+  (set-goal bli-obj-castle-no-conversion bli-no)
+  (set-goal bli-obj-floating-unfunded bli-no)
+  (set-goal bli-obj-any-fail bli-no))
+
+; 1. Missing farm transition: food falling + no farms by 14:00
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+  (game-time > 840)
+  (building-type-count-total farm <= 0)
+  (up-compare-goal bli-food-falling == bli-yes)
+=>
+  (set-goal bli-obj-farm-transition-missing bli-yes)
+  (set-goal bli-obj-any-fail bli-yes))
+
+; 2. Feudal no branch: Feudal age, all composition targets near zero
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+  (current-age == feudal-age)
+  (up-compare-goal bli-target-spear c:< 3)
+  (up-compare-goal bli-target-skirm c:< 3)
+  (up-compare-goal bli-target-archer c:< 4)
+  (up-compare-goal bli-target-scout c:< 3)
+  (up-compare-goal bli-target-mobile c:< 3)
+=>
+  (set-goal bli-obj-feudal-no-branch bli-yes)
+  (set-goal bli-obj-any-fail bli-yes))
+
+; 3. Castle no conversion: 5 min into Castle, military pop < 5, no transition gates firing
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+  (current-age == castle-age)
+  (current-age-time > 300)
+  (military-population < 5)
+  (up-compare-goal bli-strategy != bli-strat-trash-transition)
+  (up-compare-goal bli-role-spear-to-halb == bli-no)
+  (up-compare-goal bli-role-skirm-to-elite == bli-no)
+  (up-compare-goal bli-role-archer-to-xbow == bli-no)
+  (up-compare-goal bli-role-scout-to-lightcav == bli-no)
+=>
+  (set-goal bli-obj-castle-no-conversion bli-yes)
+  (set-goal bli-obj-any-fail bli-yes))
+
+; 4. Floating unfunded: spendable > 500 but all targets near zero (no strategic sink)
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+  (up-compare-goal bli-spend-food >= 500)
+  (up-compare-goal bli-target-spear c:< 3)
+  (up-compare-goal bli-target-skirm c:< 3)
+  (up-compare-goal bli-target-archer c:< 4)
+  (up-compare-goal bli-target-scout c:< 3)
+  (up-compare-goal bli-target-knight c:< 2)
+  (up-compare-goal bli-target-monk c:< 1)
+  (up-compare-goal bli-target-siege c:< 1)
+  (up-compare-goal bli-target-mobile c:< 3)
+  (up-compare-goal bli-target-cata c:< 2)
+=>
+  (set-goal bli-obj-floating-unfunded bli-yes)
+  (set-goal bli-obj-any-fail bli-yes))
+; 4b. Large idle resource bank: wood/gold accumulating without military purpose
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+  (current-age == feudal-age)
+  (wood-amount >= 1000)
+  (gold-amount >= 500)
+  (military-population < 5)
+  (up-compare-goal bli-commit-id != bli-commit-castle)
+=>
+  (set-goal bli-obj-floating-unfunded bli-yes)
+  (set-goal bli-obj-any-fail bli-yes))
+
+; 5. Stalled transition: Castle age but transition gates not firing despite targets
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+  (current-age == castle-age)
+  (current-age-time > 180)
+  (or (and (up-compare-goal bli-target-spear c:>= 8)
+        (and (up-compare-goal bli-role-spear-to-halb == bli-no)
+          (or (up-compare-goal bli-int-cav != bli-inv-none)
+            (up-compare-goal bli-pred-cav-more == bli-yes))))
+    (or (and (up-compare-goal bli-target-archer c:>= 8)
+        (and (up-compare-goal bli-role-archer-to-xbow == bli-no)
+          (or (up-compare-goal bli-strategy == bli-strat-archer-pressure)
+            (up-compare-goal bli-opp-mixed == bli-yes))))
+      (and (up-compare-goal bli-target-mobile c:>= 4)
+        (and (up-compare-goal bli-role-scout-to-lightcav == bli-no)
+          (unit-type-count-total scout-cavalry-line >= 3)))))
+=>
+  (set-goal bli-obj-any-fail bli-yes))

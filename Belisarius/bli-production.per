@@ -1,0 +1,321 @@
+; Belisarius bli-production.per — Prompt 6 PRODUCTION (capacity as strategy, C5: target-driven).
+; Authority: training all military + building 2nd+ production, siege workshop,
+; monastery, castle. bli-opening owns the FIRST barracks/stable/range/market/smith.
+; Training uses target counts (bli-target-*) from bli-composition; trains only the deficit.
+; Building rules trigger when target > 0 and infrastructure missing/insufficient.
+
+; ================= TRAINING (deficit against target; effective = live + queued) =================
+; unit-type-count-total counts standing + queued, so each rule trains only the missing remainder.
+; When target is met, training stops; existing units retained; resources redirect to next priority.
+
+; Spears / Halberdier: target from bli-target-spear, bank-guarded
+; Respect Castle bank protection.
+(defrule
+  (can-train spearman-line)
+  (up-compare-goal bli-target-spear c:> 0)
+  (unit-type-count-total spearman-line c:< bli-target-spear)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-food >= 100))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (train spearman-line))
+
+; Skirmisher / Elite Skirmisher: target from bli-target-skirm
+; Respect Castle bank protection.
+(defrule
+  (can-train skirmisher-line)
+  (up-compare-goal bli-target-skirm c:> 0)
+  (unit-type-count-total skirmisher-line c:< bli-target-skirm)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-food >= 100))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (train skirmisher-line))
+
+; Archer / Crossbow / Arbalest: target from bli-target-archer, bank-guarded
+; Fast Castle protects its bank: don't train archers from committed food unless defending
+; Respect Castle bank protection.
+(defrule
+  (can-train archer-line)
+  (up-compare-goal bli-target-archer c:> 0)
+  (unit-type-count-total archer-line c:< bli-target-archer)
+  (or (up-compare-goal bli-strategy != bli-strat-fast-castle)
+    (or (food-amount < 700)
+      (gold-amount >= 200)))
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (or (up-compare-goal bli-spend-food >= 150)
+      (up-compare-goal bli-enemy-in-town == bli-yes)))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (train archer-line))
+
+; Scout (Feudal): target from bli-target-scout
+; Respect Castle bank protection.
+(defrule
+  (current-age == feudal-age)
+  (can-train scout-cavalry-line)
+  (up-compare-goal bli-target-scout c:> 0)
+  (unit-type-count-total scout-cavalry-line c:< bli-target-scout)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (or (up-compare-goal bli-spend-food >= 100)
+      (up-compare-goal bli-enemy-in-town == bli-yes)))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (train scout-cavalry-line))
+; Light Cav / Hussar (Castle+): target from bli-target-mobile (mobility role)
+; Respect Castle bank protection.
+(defrule
+  (current-age == castle-age)
+  (can-train light-cavalry)
+  (up-compare-goal bli-target-mobile c:> 0)
+  (unit-type-count-total light-cavalry c:< bli-target-mobile)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (or (up-compare-goal bli-spend-food >= 100)
+      (up-compare-goal bli-enemy-in-town == bli-yes)))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (train light-cavalry))
+(defrule
+  (current-age == imperial-age)
+  (can-train hussar)
+  (up-compare-goal bli-target-mobile c:> 0)
+  (unit-type-count-total hussar c:< bli-target-mobile)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (or (up-compare-goal bli-spend-food >= 100)
+      (up-compare-goal bli-enemy-in-town == bli-yes)))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (train hussar))
+
+; Knight / Cavalier / Paladin: target from bli-target-knight, gold bank-guarded
+; Respect Castle bank protection.
+(defrule
+  (can-train knight-line)
+  (up-compare-goal bli-target-knight c:> 0)
+  (unit-type-count-total knight-line c:< bli-target-knight)
+  (gold-amount >= 200)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-gold >= 150))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (train knight-line))
+
+; Camel: target from bli-target-camel, gold bank-guarded
+; Byzantine unique unit: anti-cavalry, priority over knights when cavalry threat exists
+; Respect Castle bank protection.
+(defrule
+  (can-train camel-line)
+  (up-compare-goal bli-target-camel c:> 0)
+  (unit-type-count-total camel-line c:< bli-target-camel)
+  (gold-amount >= 200)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-gold >= 150))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (train camel-line))
+
+; Monk: target from bli-target-monk, gold bank-guarded
+; Respect Castle bank protection.
+(defrule
+  (can-train monk)
+  (up-compare-goal bli-target-monk c:> 0)
+  (unit-type-count-total monk c:< bli-target-monk)
+  (gold-amount >= 200)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-gold >= 150))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (train monk))
+
+; Siege — Rams: target from bli-target-siege (split roughly half/half)
+; Respect Castle bank protection.
+(defrule
+  (can-train battering-ram-line)
+  (up-compare-goal bli-target-siege c:> 0)
+  (unit-type-count-total battering-ram-line c:< bli-target-siege)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-gold >= 150))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (train battering-ram-line))
+
+; Siege — Mangonels: target from bli-target-siege
+; Respect Castle bank protection.
+(defrule
+  (can-train mangonel-line)
+  (up-compare-goal bli-target-siege c:> 0)
+  (unit-type-count-total mangonel-line c:< bli-target-siege)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-gold >= 150))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (train mangonel-line))
+
+; Cataphract: target from bli-target-cata, gold bank-guarded
+; Respect Castle bank protection.
+(defrule
+  (can-train cataphract-line)
+  (up-compare-goal bli-target-cata c:> 0)
+  (unit-type-count-total cataphract-line c:< bli-target-cata)
+  (gold-amount >= 300)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-gold >= 300))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (train cataphract-line))
+
+; ================= PRODUCTION SCALING (capacity follows target depth) =================
+; A second building is justified when one cannot fill the need in required timing:
+; mixed demand, heavy commitment, or deep standing deficit.
+
+; 2nd Barracks: heavy spear demand, or mixed infantry+ranged demand, or heavy cav threat
+; Respect Castle bank protection.
+(defrule
+  (building-type-count-total barracks == 1)
+  (can-build barracks)
+  (or (up-compare-goal bli-target-spear c:>= 12)
+    (or (and (up-compare-goal bli-target-spear c:> 0)
+      (or (up-compare-goal bli-target-skirm c:> 0)
+        (up-compare-goal bli-target-archer c:> 0)))
+      (and (up-compare-goal bli-int-cav == bli-inv-heavy)
+        (up-compare-goal bli-target-spear c:> 0))))
+  (wood-amount >= 175)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build barracks))
+
+; 2nd Archery Range: double ranged demand, or committed archer flood behind schedule, or skirmisher-only pressure
+; Respect Castle bank protection.
+(defrule
+  (building-type-count-total archery-range == 1)
+  (can-build archery-range)
+  (or (and (up-compare-goal bli-target-skirm c:> 0)
+        (up-compare-goal bli-target-archer c:> 0))
+    (and (up-compare-goal bli-target-skirm c:> 0)
+      (and (up-compare-goal bli-target-archer c:< 1)
+        (wood-amount >= 175))))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build archery-range))
+(defrule
+  (building-type-count-total archery-range == 1)
+  (can-build archery-range)
+  (up-compare-goal bli-strategy == bli-strat-archer-pressure)
+  (up-compare-goal bli-target-archer c:> 0)
+  (unit-type-count-total archer-line < 4)
+  (wood-amount >= 175)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build archery-range))
+
+; 3rd Range: very heavy ranged commitment (20+ target)
+; Respect Castle bank protection.
+(defrule
+  (building-type-count-total archery-range == 2)
+  (can-build archery-range)
+  (or (up-compare-goal bli-target-archer c:>= 20)
+    (up-compare-goal bli-target-skirm c:>= 20))
+  (wood-amount >= 175)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build archery-range))
+
+; First Stable in Castle: mobility target > 0 but no stable yet
+; Respect Castle bank protection.
+(defrule
+  (current-age == castle-age)
+  (building-type-count-total stable <= 0)
+  (can-build stable)
+  (up-compare-goal bli-target-mobile c:> 0)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build stable))
+
+; 2nd Stable: heavy mobility commitment (12+ target)
+; Respect Castle bank protection.
+(defrule
+  (current-age >= castle-age)
+  (building-type-count-total stable == 1)
+  (can-build stable)
+  (up-compare-goal bli-target-mobile c:>= 12)
+  (wood-amount >= 175)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build stable))
+
+; Siege Workshop: siege target > 0 in Castle+
+; Respect Castle bank protection.
+(defrule
+  (current-age == castle-age)
+  (building-type-count-total siege-workshop <= 0)
+  (can-build siege-workshop)
+  (up-compare-goal bli-target-siege c:> 0)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build siege-workshop))
+
+; Monastery: monk target > 0 in Feudal+ (relics, healing, conversion)
+; Respect Castle bank protection.
+(defrule
+  (current-age == feudal-age)
+  (building-type-count-total monastery <= 0)
+  (can-build monastery)
+  (up-compare-goal bli-target-monk c:> 0)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build monastery))
+(defrule
+  (current-age == castle-age)
+  (building-type-count-total monastery <= 0)
+  (can-build monastery)
+  (up-compare-goal bli-target-monk c:> 0)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build monastery))
+
+; University: Imperial prep — needed for ballistics/chemistry when archer target exists
+; Also needed for Imperial transition (chemistry, architecture, siege engineers)
+; Respect Castle bank protection.
+(defrule
+  (current-age == castle-age)
+  (building-type-count-total university <= 0)
+  (can-build university)
+  (up-compare-goal bli-target-archer c:> 0)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build university))
+(defrule
+  (current-age == castle-age)
+  (building-type-count-total university <= 0)
+  (can-build university)
+  (up-compare-goal bli-commit-id == bli-commit-imperial)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build university))
+
+; Castle: pressure strategy or answering fortification, stone in hand
+; Respect Castle bank protection.
+(defrule
+  (current-age == castle-age)
+  (building-type-count-total castle <= 0)
+  (can-build castle)
+  (stone-amount >= 650)
+  (or (up-compare-goal bli-strategy == bli-strat-castle-pressure)
+    (up-compare-goal bli-int-castle-plan == bli-yes))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build castle))
+
+; 2nd Castle: heavy siege/cataphract commitment or castle pressure
+; Respect Castle bank protection.
+(defrule
+  (current-age == castle-age)
+  (building-type-count-total castle == 1)
+  (can-build castle)
+  (stone-amount >= 650)
+  (or (up-compare-goal bli-target-cata c:>= 4)
+    (or (up-compare-goal bli-target-siege c:>= 4)
+      (up-compare-goal bli-strategy == bli-strat-castle-pressure)))
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build castle))

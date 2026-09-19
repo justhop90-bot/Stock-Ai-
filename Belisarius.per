@@ -1,0 +1,49 @@
+; Belisarius — standalone adaptive Byzantine AI player.
+; New project. Sources: stock AI + Naga patterns only.
+; No dependency on any Byzantine.* experiment.
+; Prompt 1 of 10: foundation + decision-loop skeleton.
+; Prompt 2 of 10: observation + decaying memory + purposeful scouting.
+; Prompt 3 of 10: interpretation + opponent model + prediction.
+; Prompt 4 of 10: strategy selection + opening execution/deviation.
+; Prompt 5 of 10: economy engine (allocation, timing, villagers, farms, builders, market).
+; Prompt 6 of 10: production + composition + counter-counter + upgrades + power spikes.
+; Prompt 7 of 10: positioning + engagement + retreat + micro + target priority.
+; Prompt 8 of 10: raids + multi-prong + defense + buildings + map + siege/monks/relics.
+; Prompt 9 of 10: adaptation (verify, abandon, winning/losing, late game, identity).
+; Prompt 10 of 10: final integration (water, team, triage, endgame, one player).
+; Arbitration rebuild P1: resource commitment ledger + spend gates.
+; Arbitration rebuild P2: Dark food lifecycle + farm demand.
+; Arbitration rebuild P3: age-transition prep + Imperial tech + timing.
+; Arbitration rebuild P4: demand-driven military (deficit, buildings, mass, hook).
+; Content rebuild C1: food transition + forecast.
+; Content rebuild C2: skeletons + boom TC demand + Castle villager flood.
+; Content rebuild C4: mobility branch + memory decay + stop rules.
+; Content rebuild C5: objective clock + role relevance.
+; Loop: OBSERVE -> INTERPRET -> PREDICT -> PRIORITIZE -> PLAN -> ACT -> VERIFY -> ADAPT -> OBSERVE.
+(load "Belisarius\bli-constants")
+(load "Belisarius\bli-init")
+(load "Belisarius\bli-cycle")
+(load "Belisarius\bli-observe")
+(load "Belisarius\bli-memory")
+(load "Belisarius\bli-scout")
+(load "Belisarius\bli-interpret")
+(load "Belisarius\bli-predict")
+(load "Belisarius\bli-strategy")
+(load "Belisarius\bli-commit")
+(load "Belisarius\bli-hunt")
+(load "Belisarius\bli-opening")
+(load "Belisarius\bli-economy")
+(load "Belisarius\bli-villagers")
+(load "Belisarius\bli-composition")
+(load "Belisarius\bli-production")
+(load "Belisarius\bli-upgrades")
+(load "Belisarius\bli-tactics")
+(load "Belisarius\bli-retreat")
+(load "Belisarius\bli-micro")
+(load "Belisarius\bli-pressure")
+(load "Belisarius\bli-defense")
+(load "Belisarius\bli-verify")
+(load "Belisarius\bli-adapt")
+(load "Belisarius\bli-water")
+(load "Belisarius\bli-team")
+(load "Belisarius\bli-endgame")

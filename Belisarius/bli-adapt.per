@@ -1,0 +1,213 @@
+; Belisarius bli-adapt.per — Prompt 9 ADAPTATION (§36, §39, §41) + C5 CORRECTIVES.
+; Responds to verified results by adjusting demand drivers and strategic priorities.
+; Correctives modify demand accumulators, not boolean flags.
+
+; ================= ECONOMIC RECOVERY (existing) =================
+(defrule
+  (up-compare-goal bli-army-lost == bli-yes)
+  (can-sell-commodity stone)
+  (stone-amount >= 200)
+  (or (food-amount < 150)
+    (wood-amount < 150))
+=>
+  (sell-commodity stone))
+(defrule
+  (up-compare-goal bli-army-lost == bli-yes)
+  (can-buy-commodity food)
+  (food-amount < 100)
+  (gold-amount >= 150)
+  (unit-type-count-total villager < 50)
+=>
+  (buy-commodity food))
+
+; ================= OBJECTIVE CLOCK CORRECTIVES (C5: adjust demand, not flip switches) =================
+
+; 1. Farm transition missing: boost food priority, force farm build
+(defrule
+  (up-compare-goal bli-obj-farm-transition-missing == bli-yes)
+  (building-type-count-total mill >= 1)
+  (wood-amount >= 60)
+  (can-build farm)
+  (up-pending-objects c: farm < 1)
+=>
+  (build farm))
+; Re-prioritize economy toward food
+(defrule
+  (up-compare-goal bli-obj-farm-transition-missing == bli-yes)
+=>
+  (set-strategic-number sn-food-gatherer-percentage 85)
+  (set-strategic-number sn-wood-gatherer-percentage 15))
+
+; 2. Feudal no branch: inject defensive demand (spears + skirms) as fallback
+(defrule
+  (up-compare-goal bli-obj-feudal-no-branch == bli-yes)
+  (current-age == feudal-age)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_HEAVY)
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_HEAVY))
+
+; 3. Castle no conversion: if military tiny, inject demand directly (don't rely on strategy change)
+; Strategy change in Castle age doesn't generate Feudal-age demand
+(defrule
+  (up-compare-goal bli-obj-castle-no-conversion == bli-yes)
+  (current-age == castle-age)
+  (military-population < 5)
+  (up-compare-goal bli-strategy != bli-strat-defensive-feudal)
+=>
+  (set-goal bli-strategy bli-strat-defensive-feudal)
+  (set-goal bli-deviated bli-yes))
+; Inject demand directly: spear, skirm, archer, knight based on enemy composition
+(defrule
+  (up-compare-goal bli-obj-castle-no-conversion == bli-yes)
+  (current-age == castle-age)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_HEAVY)
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_HEAVY)
+  (up-modify-goal bli-demand-archer c:+ DEMAND_INC_MEANINGFUL)
+  (up-modify-goal bli-demand-knight c:+ DEMAND_INC_MEANINGFUL))
+
+; 4. Floating unfunded: inject demand AND spend down on farms, production buildings, upgrades
+; Inject demand based on enemy composition and current military gaps
+(defrule
+  (up-compare-goal bli-obj-floating-unfunded == bli-yes)
+  (or (up-compare-goal bli-int-archer != bli-inv-none)
+    (up-compare-goal bli-int-cav != bli-inv-none))
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_MEANINGFUL)
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_MEANINGFUL)
+  (up-modify-goal bli-demand-archer c:+ DEMAND_INC_MEANINGFUL)
+  (up-modify-goal bli-demand-knight c:+ DEMAND_INC_MEANINGFUL))
+; If no enemy intel, default to balanced defensive mix
+(defrule
+  (up-compare-goal bli-obj-floating-unfunded == bli-yes)
+  (up-compare-goal bli-int-archer == bli-inv-none)
+  (up-compare-goal bli-int-cav == bli-inv-none)
+=>
+  (up-modify-goal bli-demand-spear c:+ DEMAND_INC_MEANINGFUL)
+  (up-modify-goal bli-demand-skirm c:+ DEMAND_INC_MEANINGFUL))
+; Spend on farms
+(defrule
+  (up-compare-goal bli-obj-floating-unfunded == bli-yes)
+  (wood-amount >= 200)
+  (can-build farm)
+  (building-type-count-total farm < 20)
+  (up-pending-objects c: farm < 2)
+=>
+  (build farm))
+; Spend on production buildings
+(defrule
+  (up-compare-goal bli-obj-floating-unfunded == bli-yes)
+  (wood-amount >= 400)
+  (building-type-count-total barracks >= 1)
+  (building-type-count-total archery-range <= 0)
+  (can-build archery-range)
+=>
+  (build archery-range))
+(defrule
+  (up-compare-goal bli-obj-floating-unfunded == bli-yes)
+  (wood-amount >= 400)
+  (building-type-count-total archery-range >= 1)
+  (building-type-count-total stable <= 0)
+  (can-build stable)
+=>
+  (build stable))
+; Spend on upgrades
+(defrule
+  (up-compare-goal bli-obj-floating-unfunded == bli-yes)
+  (food-amount >= 300)
+  (can-research ri-squires)
+  (up-compare-goal bli-target-spear c:> 0)
+=>
+  (research ri-squires))
+
+; 5. Stalled transition: force the missing upgrade/research
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+  (up-compare-goal bli-obj-any-fail == bli-yes)
+  (current-age == castle-age)
+  (up-compare-goal bli-target-spear c:>= 8)
+  (up-compare-goal bli-role-spear-to-halb == bli-no)
+  (or (up-compare-goal bli-int-cav != bli-inv-none)
+    (up-compare-goal bli-pred-cav-more == bli-yes))
+  (can-research ri-iron-casting)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-food >= 300))
+=>
+  (research ri-iron-casting))
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+  (up-compare-goal bli-obj-any-fail == bli-yes)
+  (current-age == castle-age)
+  (up-compare-goal bli-target-archer c:>= 8)
+  (up-compare-goal bli-role-archer-to-xbow == bli-no)
+  (or (up-compare-goal bli-strategy == bli-strat-archer-pressure)
+    (up-compare-goal bli-opp-mixed == bli-yes))
+  (can-research ri-bodkin-arrow)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-food >= 300))
+=>
+  (research ri-bodkin-arrow))
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+  (up-compare-goal bli-obj-any-fail == bli-yes)
+  (current-age == castle-age)
+  (up-compare-goal bli-target-mobile c:>= 4)
+  (up-compare-goal bli-role-scout-to-lightcav == bli-no)
+  (unit-type-count-total scout-cavalry-line >= 3)
+  (can-research ri-bloodlines)
+  (or (up-compare-goal bli-commit-id == bli-no)
+    (up-compare-goal bli-spend-food >= 300))
+=>
+  (research ri-bloodlines))
+
+; 6. Castle transition failure recovery: stuck in researching state > 120s
+; If we've been researching Castle for too long without completion, reset the state
+; so the commitment can be re-evaluated.
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+  (up-compare-goal bli-castle-state == bli-castle-state-researching)
+  (up-compare-goal bli-game-time g:>= bli-castle-research-started)
+  (up-compare-goal bli-castle-research-started c:+ 120)
+=>
+  (set-goal bli-castle-state bli-castle-state-committed)
+  (set-goal bli-commit-id bli-no)
+  (set-goal bli-commit-food 0)
+  (set-goal bli-commit-gold 0))
+; Record when we enter researching state to track timeout
+(defrule
+  (up-compare-goal bli-castle-state == bli-castle-state-researching)
+  (up-compare-goal bli-castle-research-started == 0)
+=>
+  (up-modify-goal bli-castle-research-started g:= bli-game-time))
+; Clear the timestamp when we leave researching state
+(defrule
+  (up-compare-goal bli-castle-state != bli-castle-state-researching)
+  (up-compare-goal bli-castle-research-started != 0)
+=>
+  (set-goal bli-castle-research-started 0))
+
+; 7. Imperial transition failure recovery: stuck in researching state > 120s
+; If we've been researching Imperial for too long without completion, reset the state
+; so the commitment can be re-evaluated.
+(defrule
+  (up-timer-status bli-timer-strat == timer-triggered)
+  (up-compare-goal bli-imperial-state == bli-imperial-state-researching)
+  (up-compare-goal bli-game-time g:>= bli-imperial-research-started)
+  (up-compare-goal bli-imperial-research-started c:+ 120)
+=>
+  (set-goal bli-imperial-state bli-imperial-state-committed)
+  (set-goal bli-commit-id bli-no)
+  (set-goal bli-commit-food 0)
+  (set-goal bli-commit-gold 0))
+; Record when we enter researching state to track timeout
+(defrule
+  (up-compare-goal bli-imperial-state == bli-imperial-state-researching)
+  (up-compare-goal bli-imperial-research-started == 0)
+=>
+  (up-modify-goal bli-imperial-research-started g:= bli-game-time))
+; Clear the timestamp when we leave researching state
+(defrule
+  (up-compare-goal bli-imperial-state != bli-imperial-state-researching)
+  (up-compare-goal bli-imperial-research-started != 0)
+=>
+  (set-goal bli-imperial-research-started 0))

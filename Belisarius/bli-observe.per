@@ -1,0 +1,63 @@
+; Belisarius bli-observe.per — Prompt 2 OBSERVATION.
+; Turns raw engine facts into goals every pass. No interpretation here.
+; Interpretation (meaning) arrives Prompt 3; this file only records what is known.
+
+; --- own economy snapshots ---
+(defrule
+  (true)
+=>
+  (up-get-fact food-amount 0 bli-food)
+  (up-get-fact wood-amount 0 bli-wood)
+  (up-get-fact gold-amount 0 bli-gold)
+  (up-get-fact stone-amount 0 bli-stone))
+
+; --- own buildings (totals include foundations in progress) ---
+(defrule
+  (true)
+=>
+  (up-get-fact building-type-count-total town-center bli-own-tc)
+  (up-get-fact building-type-count-total barracks bli-own-barracks)
+  (up-get-fact building-type-count-total archery-range bli-own-range)
+  (up-get-fact building-type-count-total stable bli-own-stable)
+  (up-get-fact building-type-count-total siege-workshop bli-own-siege)
+  (up-get-fact building-type-count-total monastery bli-own-monastery)
+  (up-get-fact building-type-count-total castle bli-own-castle))
+
+; --- own army by line ---
+(defrule
+  (true)
+=>
+  (up-get-fact unit-type-count-total scout-cavalry-line bli-own-scout)
+  (up-get-fact unit-type-count-total spearman-line bli-own-spear)
+  (up-get-fact unit-type-count-total archer-line bli-own-archer)
+  (up-get-fact unit-type-count-total skirmisher-line bli-own-skirm)
+  (up-get-fact unit-type-count-total knight-line bli-own-knight)
+  (up-get-fact unit-type-count-total monk bli-own-monk)
+  (up-get-fact unit-type-count-total battering-ram-line bli-own-siege-units))
+
+; --- raw enemy contact: any visible enemy building means located ---
+; Re-arms the refresh deadline (game-time + 300s) on every fresh sighting.
+(defrule
+  (players-building-count any-enemy >= 1)
+=>
+  (set-goal bli-enemy-located bli-yes)
+  (up-modify-goal bli-last-enemy-contact g:= bli-game-time)
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-refresh-due c:+ 300))
+(defrule
+  (players-building-count any-enemy <= 0)
+  (up-compare-goal bli-enemy-located != bli-yes)
+=>
+  (set-goal bli-enemy-located bli-no))
+
+; --- raw threat signals: weight a 6-Knight raid over a lone Stable (spec 2) ---
+; Raw facts only (engine conditions read directly); PRIORITIZE-equivalent
+; decisions live in tactics/retreat/villagers.
+(defrule
+  (true)
+=>
+  (set-goal bli-enemy-in-town bli-no))
+(defrule
+  (up-enemy-units-in-town >= 1)
+=>
+  (set-goal bli-enemy-in-town bli-yes))

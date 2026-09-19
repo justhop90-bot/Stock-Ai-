@@ -1,0 +1,598 @@
+; Belisarius bli-economy.per — Prompt 5 ECONOMY + TIMING + FARMS + MARKET.
+; Answers: "What resources do I need for my next objective?" Allocation follows
+; bli-strategy, never fixed percentages forever. Exclusive presets per
+; (strategy, age): exactly one fires, so no flapping between allocations.
+; Banking/market/upgrades are need-gated, never automatic-max.
+
+; ================= CASTLE TRANSITION RESOURCE PROTECTION =================
+; During Castle transition (researchable/researching), protect the committed bank
+; from lower-priority spending. The ledger (bli-spend-*) already subtracts the
+; commitment, but we add explicit gates to prevent rules from spending anyway.
+; Castle bank protection: food bank protected during Castle transition
+(defrule
+  (true)
+=>
+  (set-goal bli-castle-bank-protected bli-no))
+(defrule
+  (or (up-compare-goal bli-castle-state == bli-castle-state-researchable)
+    (up-compare-goal bli-castle-state == bli-castle-state-researching))
+=>
+  (set-goal bli-castle-bank-protected bli-yes))
+(defrule
+  (up-compare-goal bli-castle-state == bli-castle-state-completed)
+=>
+  (set-goal bli-castle-bank-protected bli-no))
+
+; ================= ALLOCATION PRESETS (Dark: forecast toward the bank) =================
+; While the Feudal commitment stands, food is the objective (80/20) — but
+; wood never hits zero, because houses never wait on the bank.
+; Timing (P3): past 11 minutes unclicked, the clock outranks balance (85/15).
+(defrule
+  (current-age == dark-age)
+  (up-compare-goal bli-commit-id == bli-commit-feudal)
+  (game-time <= 660)
+=>
+  (set-goal bli-eco-focus bli-eco-food-army)
+  (set-strategic-number sn-food-gatherer-percentage 80)
+  (set-strategic-number sn-wood-gatherer-percentage 20)
+  (set-strategic-number sn-gold-gatherer-percentage 0)
+  (set-strategic-number sn-stone-gatherer-percentage 0))
+(defrule
+  (current-age == dark-age)
+  (up-compare-goal bli-commit-id == bli-commit-feudal)
+  (game-time > 660)
+=>
+  (set-goal bli-eco-focus bli-eco-food-army)
+  (set-strategic-number sn-food-gatherer-percentage 85)
+  (set-strategic-number sn-wood-gatherer-percentage 15)
+  (set-strategic-number sn-gold-gatherer-percentage 0)
+  (set-strategic-number sn-stone-gatherer-percentage 0))
+(defrule
+  (current-age == dark-age)
+  (up-compare-goal bli-commit-id == bli-no)
+=>
+  (set-goal bli-eco-focus bli-eco-balanced)
+  (set-strategic-number sn-food-gatherer-percentage 75)
+  (set-strategic-number sn-wood-gatherer-percentage 25)
+  (set-strategic-number sn-gold-gatherer-percentage 0)
+  (set-strategic-number sn-stone-gatherer-percentage 0))
+
+; ================= ALLOCATION PRESETS (Feudal) =================
+; Scout pressure: food+gold for scouts, wood for farms. Byzantine scouts buy time.
+(defrule
+  (current-age == feudal-age)
+  (up-compare-goal bli-strategy == bli-strat-scout-pressure)
+=>
+  (set-goal bli-eco-focus bli-eco-food-army)
+  (set-strategic-number sn-food-gatherer-percentage 45)
+  (set-strategic-number sn-wood-gatherer-percentage 30)
+  (set-strategic-number sn-gold-gatherer-percentage 20)
+  (set-strategic-number sn-stone-gatherer-percentage 5))
+; Archer pressure: wood-heavy (archers + spears + farms).
+(defrule
+  (current-age == feudal-age)
+  (up-compare-goal bli-strategy == bli-strat-archer-pressure)
+=>
+  (set-goal bli-eco-focus bli-eco-food-army)
+  (set-strategic-number sn-food-gatherer-percentage 35)
+  (set-strategic-number sn-wood-gatherer-percentage 40)
+  (set-strategic-number sn-gold-gatherer-percentage 20)
+  (set-strategic-number sn-stone-gatherer-percentage 5))
+; Defensive feudal: hold and outlast, cheap Byzantine counters.
+(defrule
+  (current-age == feudal-age)
+  (up-compare-goal bli-strategy == bli-strat-defensive-feudal)
+=>
+  (set-goal bli-eco-focus bli-eco-food-army)
+  (set-strategic-number sn-food-gatherer-percentage 45)
+  (set-strategic-number sn-wood-gatherer-percentage 35)
+  (set-strategic-number sn-gold-gatherer-percentage 15)
+  (set-strategic-number sn-stone-gatherer-percentage 5))
+; Fast castle: bank food+gold, minimum wood to keep TC + farms alive.
+(defrule
+  (current-age == feudal-age)
+  (or (up-compare-goal bli-strategy == bli-strat-fast-castle)
+    (up-compare-goal bli-strategy == bli-strat-defensive-boom))
+=>
+  (set-goal bli-eco-focus bli-eco-castle-bank)
+  (set-strategic-number sn-food-gatherer-percentage 50)
+  (set-strategic-number sn-wood-gatherer-percentage 25)
+  (set-strategic-number sn-gold-gatherer-percentage 20)
+  (set-strategic-number sn-stone-gatherer-percentage 5))
+
+; ================= ALLOCATION PRESETS (Castle) =================
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-strategy == bli-strat-castle-pressure)
+=>
+  (set-goal bli-eco-focus bli-eco-stone)
+  (set-strategic-number sn-food-gatherer-percentage 40)
+  (set-strategic-number sn-wood-gatherer-percentage 28)
+  (set-strategic-number sn-gold-gatherer-percentage 22)
+  (set-strategic-number sn-stone-gatherer-percentage 10))
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-strategy != bli-strat-castle-pressure)
+  (up-compare-goal bli-strategy != bli-strat-trash-transition)
+=>
+  (set-goal bli-eco-focus bli-eco-balanced)
+  (set-strategic-number sn-food-gatherer-percentage 40)
+  (set-strategic-number sn-wood-gatherer-percentage 30)
+  (set-strategic-number sn-gold-gatherer-percentage 25)
+  (set-strategic-number sn-stone-gatherer-percentage 5))
+; Late trash support (Prompt 9 decides the transition; economy funds it here).
+(defrule
+  (or (current-age == imperial-age)
+    (up-compare-goal bli-strategy == bli-strat-trash-transition))
+  (up-compare-goal bli-strategy == bli-strat-trash-transition)
+=>
+  (set-goal bli-eco-focus bli-eco-food-army)
+  (set-strategic-number sn-food-gatherer-percentage 45)
+  (set-strategic-number sn-wood-gatherer-percentage 40)
+  (set-strategic-number sn-gold-gatherer-percentage 10)
+  (set-strategic-number sn-stone-gatherer-percentage 5))
+
+; ================= CASTLE ECONOMIC TRANSITION (P1) =================
+; Castle transition activates strategic economic reassessment
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-age-snap == bli-age-castle)
+  (up-compare-goal bli-age-prev != bli-age-castle)
+=>
+  (set-goal bli-castle-transition-state bli-castle-transition-state-active))
+
+; Castle transition active: reassess economic priorities
+; Farm reassessment
+(defrule
+  (up-compare-goal bli-castle-transition-state == bli-castle-transition-state-active)
+  (up-compare-goal bli-target-farms g:> building-type-count-total farm)
+  (wood-amount >= 60)
+  (can-build farm)
+  (up-pending-objects c: farm < 1)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build farm))
+
+; Castle transition complete
+(defrule
+  (up-compare-goal bli-castle-transition-state == bli-castle-transition-state-complete)
+=>
+  (set-strategic-number sn-enable-boar-hunting 1)
+  (set-strategic-number sn-maximum-hunt-drop-distance 30))
+
+; ================= IMPERIAL ECONOMIC TRANSITION (P1) =================
+; Imperial transition activates strategic economic reassessment
+(defrule
+  (current-age == imperial-age)
+  (up-compare-goal bli-age-snap == bli-age-imperial)
+  (up-compare-goal bli-age-prev != bli-age-imperial)
+=>
+  (set-goal bli-imperial-transition-state bli-imperial-transition-state-active))
+
+; Imperial transition active: drive Imperial economic reassessment
+(defrule
+  (up-compare-goal bli-imperial-transition-state == bli-imperial-transition-state-active)
+  (up-compare-goal bli-target-farms g:> building-type-count-total farm)
+  (wood-amount >= 60)
+  (can-build farm)
+  (up-pending-objects c: farm < 1)
+  (up-compare-goal bli-imperial-transition-state == bli-imperial-transition-state-active)
+=>
+  (build farm))
+
+; Imperial transition complete
+(defrule
+  (up-compare-goal bli-imperial-transition-state == bli-imperial-transition-state-complete)
+=>
+  (set-strategic-number sn-enable-boar-hunting 1)
+  (set-strategic-number sn-maximum-hunt-drop-distance 30))
+
+; ================= FEUDAL FARM TRANSITION (P0-B) =================
+; At Feudal transition, activate farm transition state to drive proactive farm building
+; regardless of current food availability from natural sources.
+(defrule
+  (current-age == feudal-age)
+  (up-compare-goal bli-age-snap == bli-age-feudal)
+  (up-compare-goal bli-age-prev != bli-age-feudal)
+=>
+  (set-goal bli-farm-transition-state bli-farm-transition-active))
+
+; Farm transition active: drive farm construction to establish base farm count
+; regardless of current food availability from natural sources.
+(defrule
+  (up-compare-goal bli-farm-transition-state == bli-farm-transition-active)
+  (building-type-count-total mill >= 1)
+  (up-get-fact building-type-count-total farm bli-current-farms)
+  (up-compare-goal bli-target-farms g:> bli-current-farms)
+  (wood-amount >= 60)
+  (can-build farm)
+  (up-pending-objects c: farm < 1)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build farm))
+
+; Reduce hunter/fish priority while farm transition is active
+(defrule
+  (up-compare-goal bli-farm-transition-state == bli-farm-transition-active)
+=>
+  (set-strategic-number sn-enable-boar-hunting 0)
+  (set-strategic-number sn-maximum-hunt-drop-distance 15))
+
+; Farm transition complete: target farms reached, resume normal hunting
+(defrule
+  (up-compare-goal bli-farm-transition-state == bli-farm-transition-active)
+  (building-type-count-total farm c:>= bli-target-farms)
+=>
+  (set-goal bli-farm-transition-state bli-farm-transition-complete)
+  (set-strategic-number sn-enable-boar-hunting 1)
+  (set-strategic-number sn-maximum-hunt-drop-distance 30))
+
+; ================= CASTLE FARM REASSESSMENT (P1) =================
+; Castle transition activates farm reassessment
+(defrule
+  (up-compare-goal bli-castle-transition-state == bli-castle-transition-state-active)
+  (up-compare-goal bli-target-farms g:> building-type-count-total farm)
+  (wood-amount >= 60)
+  (can-build farm)
+  (up-pending-objects c: farm < 1)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build farm))
+
+; Castle transition complete: farm reassessment done
+(defrule
+  (up-compare-goal bli-castle-transition-state == bli-castle-transition-state-complete)
+=>
+  (set-strategic-number sn-enable-boar-hunting 1)
+  (set-strategic-number sn-maximum-hunt-drop-distance 30))
+
+; ================= IMPERIAL FARM REASSESSMENT (P1) =================
+; Imperial transition activates farm reassessment
+(defrule
+  (up-compare-goal bli-imperial-transition-state == bli-imperial-transition-state-active)
+  (up-compare-goal bli-target-farms g:> building-type-count-total farm)
+  (wood-amount >= 60)
+  (can-build farm)
+  (up-pending-objects c: farm < 1)
+  (up-compare-goal bli-imperial-transition-state == bli-imperial-transition-state-active)
+=>
+  (build farm))
+
+; Imperial transition complete: farm reassessment done
+(defrule
+  (up-compare-goal bli-imperial-transition-state == bli-imperial-transition-state-active)
+  (up-compare-goal bli-target-farms c:>= bli-target-farms)
+=>
+  (set-strategic-number sn-enable-boar-hunting 1)
+  (set-strategic-number sn-maximum-hunt-drop-distance 30))
+
+; ================= FARM DEMAND (C1: farms are the RESULT, never the plan) =================
+; Demand = hunger + capacity + pipeline. No villager-count gates, no era
+; gates: hunting and farming coexist, as on any competent player's economy.
+; up-pending-objects throttles to one foundation in flight (no wood fires).
+; Emergency: TC about to stall with wood in hand — farm immediately.
+(defrule
+  (building-type-count-total mill >= 1)
+  (food-amount < 50)
+  (wood-amount >= 60)
+  (can-build farm)
+  (idle-farm-count <= 0)
+  (up-pending-objects c: farm < 1)
+=>
+  (build farm))
+; Skeleton: hungry + (era over | mass 20 | clock 7:00) + wood to pay.
+(defrule
+  (building-type-count-total mill >= 1)
+  (food-amount < 300)
+  (wood-amount >= 60)
+  (can-build farm)
+  (idle-farm-count <= 0)
+  (up-pending-objects c: farm < 1)
+  (or (up-compare-goal bli-boar-mode == bli-boar-exhausted)
+    (or (unit-type-count-total villager >= 20)
+      (game-time >= 420)))
+=>
+  (build farm))
+; Forecast: stockpile bleeding while hunters walk (deer-trap) — farm into
+; the fall even above the hunger line.
+(defrule
+  (building-type-count-total mill >= 1)
+  (up-compare-goal bli-food-falling == bli-yes)
+  (food-amount < 500)
+  (wood-amount >= 60)
+  (can-build farm)
+  (idle-farm-count <= 0)
+  (up-pending-objects c: farm < 1)
+=>
+  (build farm))
+; Objective clock (C5): no farm by 14:00 with a mill standing is a failed
+; transition whatever the stockpile claims — start agriculture now.
+(defrule
+  (game-time > 840)
+  (building-type-count-total farm <= 0)
+  (building-type-count-total mill >= 1)
+  (wood-amount >= 60)
+  (can-build farm)
+=>
+  (build farm))
+; Floating but fragile (C5): rich late game on <10 farms means natural food
+; still carries the economy — one raid from collapse. Farm despite the float.
+(defrule
+  (or (current-age == castle-age)
+    (current-age == imperial-age))
+  (food-amount >= 1000)
+  (building-type-count-total farm < 10)
+  (building-type-count-total mill >= 1)
+  (wood-amount >= 100)
+  (can-build farm)
+  (up-pending-objects c: farm < 2)
+=>
+  (build farm))
+; Castle+: reseed/expand while wood allows. Pipeline guard prevents spam.
+; Stop when floating 1000+ food: income already exceeds consumption, and every
+; further farm is wood the production/TC plan needs more.
+; Respect Castle bank protection: do not spend committed transition resources.
+(defrule
+  (or (current-age == castle-age)
+    (current-age == imperial-age))
+  (wood-amount >= 100)
+  (food-amount < 1000)
+  (can-build farm)
+  (idle-farm-count <= 1)
+  (up-pending-objects c: farm < 2)
+  (building-type-count-total farm < 40)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (build farm))
+
+; ================= ECO UPGRADES (C3: purpose + timing + beneficiaries + cost) =================
+; Formula per tech: the economic plan creates demand, beneficiaries must exist
+; NOW, and the spendable ledger pays — never the bank. Strategy-identity bans
+; (old fast-castle exclusions) are replaced by spendable guards, which say the
+; same thing honestly: affordable only when the timing survives it.
+; Axe: wood throughput for farms/buildings. Cheap Feudal tech, light gate.
+; Respect Castle bank protection: do not spend committed transition resources.
+(defrule
+  (can-research ri-double-bit-axe)
+  (strategic-number sn-wood-gatherer-percentage >= 25)
+  (up-compare-goal bli-spend-food >= 100)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-double-bit-axe))
+; Horse collar: follows the farm transition, not a farm count milestone.
+; Two farms + natural food ending (or Feudal already) means the beneficiaries
+; exist; the old 4-farm gate vetoed it exactly when it mattered most.
+; Respect Castle bank protection.
+; Connected to farm transition: Horse Collar becomes a strategic priority when farm transition is active.
+(defrule
+  (can-research ri-horse-collar)
+  (up-compare-goal bli-farm-transition-state == bli-farm-transition-active)
+  (up-compare-goal bli-spend-food >= 100)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-horse-collar))
+; Wheel barrow with an economy worth speeding (30 vills, lower vetoes).
+; Paused under crisis triage: survival spending first. Never from the
+; committed bank: uncommitted stockpile reads equal (ledger zeroes the commit).
+; Respect Castle bank protection.
+(defrule
+  (current-age == castle-age)
+  (can-research ri-wheel-barrow)
+  (unit-type-count-total villager >= 30)
+  (food-amount >= 250)
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-spend-food >= 200)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-wheel-barrow))
+; Gold mining when gold throughput constrains something real: a gold army
+; being fielded, or gold share carrying the plan.
+; Respect Castle bank protection.
+(defrule
+  (current-age >= castle-age)
+  (can-research ri-gold-mining)
+  (or (strategic-number sn-gold-gatherer-percentage >= 15)
+    (or (up-compare-goal bli-target-knight c:> 0)
+      (or (up-compare-goal bli-target-monk c:> 0)
+        (up-compare-goal bli-target-archer c:> 0))))
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-spend-food >= 200)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-gold-mining))
+; Bow saw / heavy plow with surplus, never starving the army.
+; (can-research already implies the prerequisite tech is done.)
+; Respect Castle bank protection.
+(defrule
+  (current-age == castle-age)
+  (can-research ri-bow-saw)
+  (wood-amount >= 200)
+  (food-amount >= 250)
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-spend-food >= 200)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-bow-saw))
+(defrule
+  (current-age == castle-age)
+  (can-research ri-heavy-plow)
+  (building-type-count-total farm >= 8)
+  (food-amount >= 300)
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-spend-food >= 200)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-heavy-plow))
+; Stone mining only when stone has a destination: a castle standing, towers
+; going up, or multiple TCs. Otherwise the miners are wasted villagers.
+; Respect Castle bank protection.
+(defrule
+  (current-age >= castle-age)
+  (can-research ri-stone-mining)
+  (or (building-type-count-total castle >= 1)
+    (or (building-type-count-total watch-tower >= 1)
+      (building-type-count-total town-center >= 2)))
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-spend-food >= 150)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-stone-mining))
+; Hand cart scales the late economy: wheel done, 50+ villagers to speed.
+; Respect Castle bank protection.
+(defrule
+  (current-age == castle-age)
+  (can-research ri-hand-cart)
+  (research-completed ri-wheel-barrow)
+  (unit-type-count-total villager >= 50)
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-spend-food >= 250)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-hand-cart))
+; Feudal gold: a gold army in the field funds its own throughput.
+; Gold Mining is a Feudal technology; waiting for Castle wastes the army.
+; Respect Castle bank protection.
+(defrule
+  (current-age == feudal-age)
+  (can-research ri-gold-mining)
+  (or (up-compare-goal bli-target-archer c:> 0)
+    (up-compare-goal bli-target-scout c:> 0))
+  (strategic-number sn-gold-gatherer-percentage >= 10)
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-spend-food >= 150)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-gold-mining))
+; Imperial scaling: wood, farms, and stone destinations that survived to late.
+; Respect Castle bank protection (Imperial transition may also protect).
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-two-man-saw)
+  (strategic-number sn-wood-gatherer-percentage >= 25)
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-spend-food >= 200)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-two-man-saw))
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-crop-rotation)
+  (building-type-count-total farm >= 15)
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-spend-food >= 200)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-crop-rotation))
+(defrule
+  (current-age == imperial-age)
+  (can-research ri-stone-shaft-mining)
+  (building-type-count-total castle >= 1)
+  (up-compare-goal bli-crisis == bli-no)
+  (up-compare-goal bli-spend-food >= 150)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (research ri-stone-shaft-mining))
+
+; ================= MARKET (strategic tool, never emergency reflex) =================
+; Buy the last food for Castle when close; gold guard prevents draining.
+; Respect Castle bank protection.
+(defrule
+  (current-age == feudal-age)
+  (or (up-compare-goal bli-strategy == bli-strat-fast-castle)
+    (up-compare-goal bli-strategy == bli-strat-castle-pressure))
+  (can-buy-commodity food)
+  (food-amount >= 600)
+  (food-amount < 800)
+  (gold-amount >= 150)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (buy-commodity food))
+; Sell wood surplus for the Castle gold when wood is genuinely spare.
+; Respect Castle bank protection.
+(defrule
+  (current-age == feudal-age)
+  (up-compare-goal bli-strategy == bli-strat-fast-castle)
+  (can-sell-commodity wood)
+  (gold-amount < 200)
+  (wood-amount >= 350)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (sell-commodity wood))
+; Emergency villager food: TC would stall with gold spare and vills missing.
+; Respect Castle bank protection.
+(defrule
+  (can-buy-commodity food)
+  (food-amount < 50)
+  (gold-amount >= 150)
+  (unit-type-count-total villager < 40)
+  (current-age != dark-age)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (buy-commodity food))
+; Never sell food below a Castle-capable bank while a Castle plan is live.
+; (No rule sells food under 1000 except the emergency buy above spends gold.)
+; Respect Castle bank protection.
+(defrule
+  (can-sell-commodity food)
+  (food-amount >= 1100)
+  (gold-amount < 200)
+  (current-age >= castle-age)
+  (up-compare-goal bli-castle-bank-protected == bli-no)
+=>
+  (sell-commodity food))
+
+; ================= FARMER DISPLACEMENT & FOOD RECOVERY CIRCUIT =================
+; Track when farmers are displaced from food by threat
+; Displaced farmers = wood-gatherer percentage increase due to threat
+; Food deficit detection + recovery circuit
+
+; Track displaced farmers: wood-gatherer % increase during threat indicates displacement
+(defrule
+  (up-compare-goal bli-enemy-in-town == bli-yes)
+  (strategic-number sn-wood-gatherer-percentage > 30)
+  (up-compare-goal bli-farmer-displaced-by-threat == bli-no)
+=>
+  (set-goal bli-farmer-displaced-by-threat bli-yes)
+  (up-modify-goal bli-farmer-displaced-count g:+ 1))
+
+; Clear displacement flag when threat clears
+(defrule
+  (up-compare-goal bli-enemy-in-town == bli-no)
+  (up-compare-goal bli-farmer-displaced-by-threat == bli-yes)
+=>
+  (set-goal bli-farmer-displaced-by-threat bli-no))
+
+; Food deficit detection: food income collapsing while farmers displaced
+(defrule
+  (up-compare-goal bli-farmer-displaced-by-threat == bli-yes)
+  (up-compare-goal bli-food-falling == bli-yes)
+  (food-amount < 300)
+=>
+  (set-goal bli-food-deficit-critical bli-yes))
+
+; Recovery circuit: threat cleared, food deficit exists -> reassign to food
+(defrule
+  (up-compare-goal bli-enemy-in-town == bli-no)
+  (up-compare-goal bli-food-deficit-critical == bli-yes)
+  (food-amount < 500)
+  (strategic-number sn-food-gatherer-percentage < 60)
+=>
+  (set-strategic-number sn-food-gatherer-percentage 70)
+  (set-strategic-number sn-wood-gatherer-percentage 20)
+  (set-strategic-number sn-gold-gatherer-percentage 10)
+  (set-goal bli-food-deficit-critical bli-no))
+
+; Explicit farm construction/reallocation lifecycle
+; Farm deficit = desired farms - existing - pending
+; Desired farms based on villager count and food demand
+(defrule
+  (building-type-count-total mill >= 1)
+  (food-amount < 400)
+  (wood-amount >= 60)
+  (can-build farm)
+  (idle-farm-count <= 0)
+  (up-pending-objects c: farm < 1)
+  (up-get-fact building-type-count-total farm bli-current-farms)
+  (up-compare-goal bli-target-farms g:> bli-current-farms)
+=>
+  (build farm))

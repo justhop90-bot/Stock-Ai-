@@ -1,0 +1,59 @@
+; Belisarius bli-pressure.per — Prompt 8 RAIDS + MULTI-PRONG (intent) + FOCUS + MAP GROWTH.
+; Authority: enemy focus/target SNs, bli-raiding intent, town-size growth.
+; It never touches attack groups/percentages (bli-tactics owns those and reads
+; bli-raiding). Raids exploit exposed economy with mobile forces while the
+; main body holds; multi-prong splits only a large mobile army (§25).
+
+; ================= ENEMY FOCUS (who pressure answers) =================
+; Invalid or missing focus: track the closest enemy. Self-heals if broken.
+(defrule
+  (strategic-number sn-target-player-number <= 0)
+=>
+  (up-find-player enemy find-closest bli-tmp1)
+  (up-modify-sn sn-target-player-number g:= bli-tmp1)
+  (up-modify-sn sn-focus-player-number g:= bli-tmp1))
+(defrule
+  (not (player-in-game target-player))
+  (strategic-number sn-target-player-number >= 1)
+=>
+  (set-strategic-number sn-target-player-number 0)
+  (set-strategic-number sn-focus-player-number 0))
+
+; ================= RAIDING INTENT (mobile force + located enemy + mid game) =================
+; Scouts/knights exist to punish exposed gold/wood, not to join the main line.
+(defrule
+  (or (unit-type-count-total scout-cavalry-line >= 3)
+    (unit-type-count-total knight-line >= 3))
+  (up-compare-goal bli-enemy-located == bli-yes)
+  (game-time >= 600)
+  (up-compare-goal bli-retreat == bli-no)
+  (or (current-age == feudal-age)
+    (current-age == castle-age))
+=>
+  (set-goal bli-raiding bli-yes))
+(defrule
+  (or (and (unit-type-count-total scout-cavalry-line < 3)
+        (unit-type-count-total knight-line < 3))
+    (or (up-compare-goal bli-enemy-located == bli-no)
+      (or (game-time < 600)
+        (up-compare-goal bli-retreat == bli-yes))))
+=>
+  (set-goal bli-raiding bli-no))
+
+; ================= TOWN-SIZE GROWTH (reinforcement logistics, Naga pattern) =================
+; A larger town spreads production and shortens reinforcement paths (§29).
+(defrule
+  (current-age == feudal-age)
+=>
+  (up-modify-sn sn-maximum-town-size c:max 10)
+  (up-modify-sn sn-maximum-town-size c:min 14))
+(defrule
+  (current-age == castle-age)
+=>
+  (up-modify-sn sn-maximum-town-size c:max 10)
+  (up-modify-sn sn-maximum-town-size c:min 18))
+(defrule
+  (current-age == imperial-age)
+=>
+  (up-modify-sn sn-maximum-town-size c:max 10)
+  (up-modify-sn sn-maximum-town-size c:min 24))

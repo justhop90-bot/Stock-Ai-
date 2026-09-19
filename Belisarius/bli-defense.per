@@ -1,0 +1,95 @@
+; Belisarius bli-defense.per — Prompt 8 DEFENSE + EXPANSION + RELICS SEEN.
+; Authority: towers, palisades, extra town centers, relic sighting.
+; Castles/siege shops stay in bli-production; army defense in bli-tactics.
+; Every structure protects something: towers cover forward-threatened towns,
+; TCs secure new resource zones, palisades buy time on defensive plans.
+
+; ================= TOWERS (answer to forward pressure, capped) =================
+(defrule
+  (up-compare-goal bli-int-forward-pressure == bli-yes)
+  (or (current-age == feudal-age)
+    (current-age == castle-age))
+  (building-type-count-total watch-tower < 2)
+  (can-build watch-tower)
+  (stone-amount >= 175)
+=>
+  (build watch-tower))
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-int-forward-pressure == bli-yes)
+  (building-type-count-total watch-tower >= 2)
+  (building-type-count-total watch-tower < 3)
+  (can-build watch-tower)
+  (stone-amount >= 300)
+=>
+  (build watch-tower))
+
+; ================= PALISADES (cheap time on defensive plans, wood-throttled) =================
+(defrule
+  (or (up-compare-goal bli-strategy == bli-strat-defensive-feudal)
+    (up-compare-goal bli-strategy == bli-strat-defensive-boom))
+  (or (current-age == feudal-age)
+    (current-age == castle-age))
+  (can-build palisade-wall)
+  (wood-amount >= 350)
+  (up-compare-goal bli-int-forward-pressure == bli-no)
+=>
+  (build palisade-wall))
+
+; ================= EXPANSION (C2: TCs are boom economics, not a building quota) =================
+; Boom intent + protected timing + resources -> TC demand. A pressure plan
+; delays the TC (army first); a greedy plan prioritizes it; safety gates both
+; (never while the town is being overrun or the army is being rebuilt).
+; Boom 2nd TC: right after Castle with the eco to fill it.
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-strategy == bli-strat-defensive-boom)
+  (building-type-count-total town-center < 2)
+  (can-build town-center)
+  (unit-type-count-total villager >= 35)
+  (up-compare-goal bli-crisis == bli-no)
+=>
+  (build town-center))
+; Boom 3rd TC: only with the villagers to justify it.
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-strategy == bli-strat-defensive-boom)
+  (building-type-count-total town-center >= 2)
+  (building-type-count-total town-center < 3)
+  (can-build town-center)
+  (unit-type-count-total villager >= 55)
+  (up-compare-goal bli-crisis == bli-no)
+=>
+  (build town-center))
+; Non-boom 2nd TC: expansion from strength, never from greed.
+(defrule
+  (current-age == castle-age)
+  (up-compare-goal bli-strategy != bli-strat-defensive-boom)
+  (building-type-count-total town-center < 2)
+  (can-build town-center)
+  (unit-type-count-total villager >= 65)
+  (military-population >= 10)
+  (up-compare-goal bli-enemy-in-town == bli-no)
+  (up-compare-goal bli-crisis == bli-no)
+=>
+  (build town-center))
+; Nomad start without a TC: place one so the game can begin.
+(defrule
+  (up-compare-goal bli-map-nomad == bli-yes)
+  (building-type-count-total town-center <= 0)
+  (can-build town-center)
+  (unit-type-count-total villager >= 1)
+=>
+  (build town-center))
+
+; ================= RELIC SIGHTING (tracking for monk/relic play; fetch micro deferred) =================
+(defrule
+  (cc-players-unit-type-count 0 relic >= 1)
+=>
+  (set-goal bli-relic-seen bli-yes))
+(defrule
+  (cc-players-unit-type-count 0 relic <= 0)
+  (up-compare-goal bli-relic-seen == bli-yes)
+  (game-time < 300)
+=>
+  (set-goal bli-relic-seen bli-no))

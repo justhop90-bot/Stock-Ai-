@@ -1,0 +1,43 @@
+; Belisarius bli-endgame.per — Prompt 10 TRIAGE + ENDGAME (§50, §51, §52).
+; Survival threats first, then the plan. bli-crisis latches while retreating
+; or while a verified wipe coincides with enemies inside; expensive futures
+; (eco tech, Imperial) pause until it clears. Defeat resigns only on a true
+; wipe, after a delay, so recoverable games are never thrown away.
+
+; ================= CRISIS TRIAGE (catastrophic override) =================
+(defrule
+  (or (up-compare-goal bli-retreat == bli-yes)
+    (and (up-compare-goal bli-army-lost == bli-yes)
+      (up-compare-goal bli-enemy-in-town == bli-yes)))
+=>
+  (set-goal bli-crisis bli-yes))
+(defrule
+  (up-compare-goal bli-retreat == bli-no)
+  (or (up-compare-goal bli-army-lost == bli-no)
+    (up-compare-goal bli-enemy-in-town == bli-no))
+=>
+  (set-goal bli-crisis bli-no))
+
+; ================= DEFEAT (true wipe only, delayed, Naga-style chain) =================
+(defrule
+  (building-type-count-total town-center <= 0)
+  (unit-type-count-total villager <= 2)
+  (military-population <= 2)
+  (game-time > 600)
+  (up-compare-goal bli-defeated == bli-no)
+=>
+  (set-goal bli-defeated bli-yes)
+  (enable-timer bli-timer-resign 30))
+(defrule
+  (up-compare-goal bli-defeated == bli-yes)
+  (or (building-type-count-total town-center >= 1)
+    (or (unit-type-count-total villager >= 3)
+      (military-population >= 3)))
+=>
+  (set-goal bli-defeated bli-no)
+  (disable-timer bli-timer-resign))
+(defrule
+  (up-compare-goal bli-defeated == bli-yes)
+  (up-timer-status bli-timer-resign == timer-triggered)
+=>
+  (resign))

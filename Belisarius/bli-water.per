@@ -1,0 +1,59 @@
+; Belisarius bli-water.per — Prompt 10 WATER + HYBRID (§44).
+; Docks only with a water reason (map or visible enemy navy). Fishing funds
+; the land plan; warships answer enemy boats in capped numbers — Byzantine
+; navy is no reason to abandon the land game. Land strategy is untouched.
+
+; --- water reason: known water/hybrid maps or enemy boats already seen ---
+(defrule
+  (or (map-type islands)
+    (or (map-type archipelago)
+      (or (map-type baltic)
+        (or (map-type mediterranean)
+          (map-type rivers)))))
+=>
+  (set-goal bli-map-water bli-yes))
+(defrule
+  (or (players-unit-type-count any-enemy fishing-ship >= 1)
+    (or (players-unit-type-count any-enemy galley-line >= 1)
+      (players-unit-type-count any-enemy fire-galley-line >= 1)))
+=>
+  (set-goal bli-map-water bli-yes))
+
+; --- dock timing: one early dock when the wood exists, never before workers ---
+(defrule
+  (up-compare-goal bli-map-water == bli-yes)
+  (building-type-count-total dock <= 0)
+  (can-build dock)
+  (unit-type-count-total villager >= 8)
+  (wood-amount >= 150)
+=>
+  (build dock))
+
+; --- fishing economy: small fleet, then back to the land plan ---
+(defrule
+  (up-compare-goal bli-map-water == bli-yes)
+  (building-type-count-total dock >= 1)
+  (can-train fishing-ship)
+  (unit-type-count-total fishing-ship < 6)
+=>
+  (train fishing-ship))
+
+; --- naval answer: match enemy boats, capped (no naval arms race) ---
+(defrule
+  (up-compare-goal bli-map-water == bli-yes)
+  (building-type-count-total dock >= 1)
+  (or (players-unit-type-count any-enemy fishing-ship >= 1)
+    (or (players-unit-type-count any-enemy galley-line >= 1)
+      (players-unit-type-count any-enemy fire-galley-line >= 1)))
+  (can-train galley-line)
+  (unit-type-count-total galley-line < 6)
+=>
+  (train galley-line))
+(defrule
+  (up-compare-goal bli-map-water == bli-yes)
+  (building-type-count-total dock >= 1)
+  (players-unit-type-count any-enemy fire-galley-line >= 2)
+  (can-train fire-galley-line)
+  (unit-type-count-total fire-galley-line < 4)
+=>
+  (train fire-galley-line))

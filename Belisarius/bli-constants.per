@@ -1,0 +1,360 @@
+; Belisarius bli-constants.per — Prompt 1 foundation.
+; All shared IDs for the decision loop. Loaded first. Nothing executes here.
+
+; --- generic ---
+(defconst bli-no 0)
+(defconst bli-yes 1)
+
+; --- ages (mirror engine current-age values used by stock/Naga) ---
+(defconst bli-age-dark 0)
+(defconst bli-age-feudal 2)
+(defconst bli-age-castle 4)
+(defconst bli-age-imperial 6)
+
+; --- tech IDs (engine built-ins; Byzantine unique techs must be declared) ---
+(defconst ri-logistica 61)
+
+; --- decision-loop phases (spec section 53) ---
+(defconst bli-phase-observe 0)
+(defconst bli-phase-interpret 1)
+(defconst bli-phase-predict 2)
+(defconst bli-phase-prioritize 3)
+(defconst bli-phase-plan 4)
+(defconst bli-phase-act 5)
+(defconst bli-phase-verify 6)
+(defconst bli-phase-adapt 7)
+
+; --- plan timescale note: strategic persists minutes, tactical seconds (see bli-cycle) ---
+
+; --- strategy slots (every ID below is selected somewhere; no dead menu items) ---
+(defconst bli-strat-unset 0)
+(defconst bli-strat-defensive-feudal 1)
+(defconst bli-strat-scout-pressure 2)
+(defconst bli-strat-archer-pressure 3)
+(defconst bli-strat-fast-castle 4)
+(defconst bli-strat-ranged-defense 5)
+(defconst bli-strat-knight-play 6)
+(defconst bli-strat-defensive-boom 7)
+(defconst bli-strat-castle-pressure 8)
+(defconst bli-strat-trash-transition 9)
+
+; --- Castle transition state machine (C5: age-up lifecycle) ---
+(defconst bli-castle-state-idle 0)
+(defconst bli-castle-state-desired 1)
+(defconst bli-castle-state-committed 2)
+(defconst bli-castle-state-researchable 3)
+(defconst bli-castle-state-researching 4)
+(defconst bli-castle-state-completed 5)
+
+; --- Castle strategic transition state machine (P1) ---
+(defconst bli-castle-transition-state-idle 0)
+(defconst bli-castle-transition-state-active 1)
+(defconst bli-castle-transition-state-complete 2)
+
+; --- Imperial transition state machine (C5: age-up lifecycle) ---
+(defconst bli-imperial-state-idle 0)
+(defconst bli-imperial-state-desired 1)
+(defconst bli-imperial-state-committed 2)
+(defconst bli-imperial-state-researchable 3)
+(defconst bli-imperial-state-researching 4)
+(defconst bli-imperial-state-completed 5)
+
+; --- Imperial strategic transition state machine (P1) ---
+(defconst bli-imperial-transition-state-idle 0)
+(defconst bli-imperial-transition-state-active 1)
+(defconst bli-imperial-transition-state-complete 2)
+
+; --- goals: loop state (600-block is Belisarius-owned) ---
+; Snapshot goals (bli-food/wood/gold/stone, bli-own-*, bli-my-*, bli-vill-count,
+; bli-age-snap, bli-last-verify-time, generations) form the observation API:
+; written in exactly one place, readable by all future rules.
+(defconst bli-loop-generation 600)
+(defconst bli-loop-phase 601)
+(defconst bli-strategy 602)
+(defconst bli-plan-valid 605)
+(defconst bli-last-verify-time 606)
+(defconst bli-strat-generation 607)
+(defconst bli-game-time 608)
+(defconst bli-my-pop 609)
+(defconst bli-my-cpop 610)
+(defconst bli-my-mpop 611)
+(defconst bli-age-snap 612)
+(defconst bli-vill-count 613)
+(defconst bli-tmp1 614)
+(defconst bli-tmp2 615)
+
+; --- timers: separate timescales (spec section 53) ---
+; fast = tactical/verify cadence, strat = strategic re-evaluation cadence
+(defconst bli-timer-fast 40)
+(defconst bli-timer-strat 41)
+(defconst bli-timer-econ 42)
+
+; --- Prompt 2: observation goals (own state, 616-block) ---
+(defconst bli-food 616)
+(defconst bli-wood 617)
+(defconst bli-gold 618)
+(defconst bli-stone 619)
+(defconst bli-own-tc 620)
+(defconst bli-own-barracks 621)
+(defconst bli-own-range 622)
+(defconst bli-own-stable 623)
+(defconst bli-own-siege 624)
+(defconst bli-own-monastery 625)
+(defconst bli-own-castle 626)
+(defconst bli-own-scout 627)
+(defconst bli-own-spear 628)
+(defconst bli-own-archer 629)
+(defconst bli-own-skirm 630)
+(defconst bli-own-knight 631)
+(defconst bli-own-monk 632)
+(defconst bli-own-siege-units 633)
+(defconst bli-enemy-in-town 634)
+
+; --- Prompt 2: enemy memory with timestamps (636-block) ---
+; latched only from actually observed facts; timestamps in game-time seconds.
+(defconst bli-em-stable 636)
+(defconst bli-em-stable-at 637)
+(defconst bli-em-range 638)
+(defconst bli-em-range-at 639)
+(defconst bli-em-barracks 640)
+(defconst bli-em-barracks-at 641)
+(defconst bli-em-siege 642)
+(defconst bli-em-siege-at 643)
+(defconst bli-em-castle 644)
+(defconst bli-em-castle-at 645)
+(defconst bli-em-knight 646)
+(defconst bli-em-knight-at 647)
+(defconst bli-em-archer 648)
+(defconst bli-em-archer-at 649)
+(defconst bli-em-monk 650)
+(defconst bli-em-monk-at 651)
+(defconst bli-em-forward 652)
+(defconst bli-em-forward-at 653)
+
+; --- Prompt 2: scouting info-needs ---
+(defconst bli-enemy-located 654)
+(defconst bli-last-enemy-contact 655)
+(defconst bli-info-need 656)
+(defconst bli-need-none 0)
+(defconst bli-need-locate 1)
+(defconst bli-need-production 2)
+(defconst bli-need-refresh 3)
+(defconst bli-stale-secs 300)
+(defconst bli-refresh-due 657)
+
+; --- unit aliases sourced from Naga customConstants (stock+Naga sources only) ---
+(defconst eagle-scout 751)
+(defconst relic 285)
+
+; --- Prompt 3: interpretation levels (0 none, 1 light, 2 meaningful, 3 heavy) ---
+(defconst bli-inv-none 0)
+(defconst bli-inv-light 1)
+(defconst bli-inv-meaningful 2)
+(defconst bli-inv-heavy 3)
+(defconst bli-int-cav 658)
+(defconst bli-int-archer 659)
+(defconst bli-int-inf 660)
+(defconst bli-int-siege-pressure 661)
+(defconst bli-int-castle-plan 662)
+(defconst bli-int-forward-pressure 663)
+
+; --- Prompt 3: opponent main hypothesis + confidence + mixed flag ---
+(defconst bli-opp-unknown 0)
+(defconst bli-opp-cavalry 1)
+(defconst bli-opp-archers 2)
+(defconst bli-opp-infantry 3)
+(defconst bli-opp-siege 4)
+(defconst bli-opp-castle 5)
+(defconst bli-opp-main 664)
+(defconst bli-conf-weak 0)
+(defconst bli-conf-moderate 1)
+(defconst bli-conf-strong 2)
+(defconst bli-opp-conf 665)
+(defconst bli-opp-mixed 666)
+
+; --- Prompt 3: predictions (yes/no preparation flags; each consumed, none ornamental) ---
+(defconst bli-pred-cav-more 667)
+(defconst bli-pred-range-support 668)
+(defconst bli-pred-siege 669)
+(defconst bli-pred-castle-age 670)
+
+; --- Prompt 4: map context + deviation latch ---
+(defconst bli-map-closed 672)
+(defconst bli-map-nomad 673)
+(defconst bli-deviated 674)
+
+; --- Prompt 5: economy focus (mirrors strategy so later prompts can read intent) ---
+(defconst bli-eco-balanced 0)
+(defconst bli-eco-food-army 1)
+(defconst bli-eco-castle-bank 2)
+(defconst bli-eco-stone 3)
+(defconst bli-eco-focus 675)
+
+; --- Prompt 6: composition demand flags + own power spike ---
+(defconst bli-want-spear 676)
+(defconst bli-want-skirm 677)
+(defconst bli-want-archer 678)
+(defconst bli-want-scout 679)
+(defconst bli-want-knight 680)
+(defconst bli-want-monk 681)
+(defconst bli-want-siege 682)
+(defconst bli-power-own 683)
+
+; --- Prompt 7: stance + retreat + tactics timers ---
+(defconst bli-stance-hold 0)
+(defconst bli-stance-engage 1)
+(defconst bli-stance 684)
+(defconst bli-retreat 685)
+(defconst bli-timer-retreat 43)
+(defconst bli-timer-stance 44)
+
+; --- Prompt 8: raiding intent + relic sighting ---
+(defconst bli-raiding 686)
+(defconst bli-relic-seen 687)
+
+; --- Prompt 9: verification + adaptation + Byzantine cataphract ---
+(defconst bli-mpop-prev 688)
+(defconst bli-army-lost 689)
+(defconst bli-want-cata 690)
+
+; --- Prompt 10: water map + crisis triage + defeat ---
+(defconst bli-map-water 691)
+(defconst bli-crisis 692)
+(defconst bli-defeated 693)
+(defconst bli-timer-resign 45)
+
+; --- Arbitration rebuild P1: commitment ledger (spendable = stockpile - committed) ---
+; commit-id stages share the 1/2/3 enum space with other domains (compared only here).
+(defconst bli-commit-id 694)
+(defconst bli-commit-food 695)
+(defconst bli-commit-gold 696)
+(defconst bli-spend-food 697)
+(defconst bli-spend-gold 698)
+(defconst bli-commit-feudal 1)
+(defconst bli-commit-castle 2)
+(defconst bli-commit-imperial 3)
+
+; --- Arbitration rebuild P2: Dark food lifecycle ---
+(defconst bli-boar-mode 699)
+(defconst bli-boar-at 700)
+(defconst bli-boar-sheep 0)
+(defconst bli-boar-hunting 1)
+(defconst bli-boar-exhausted 2)
+
+; --- Arbitration rebuild P4: transition rescout edge ---
+(defconst bli-age-prev 701)
+(defconst bli-castle-state 702)
+(defconst bli-castle-research-started 703)
+(defconst bli-castle-bank-protected 704)
+(defconst bli-imperial-state 705)
+(defconst bli-imperial-research-started 706)
+
+; --- Content rebuild C1: food forecast (stockpile trend on the slow tick) ---
+(defconst bli-food-prev 707)
+(defconst bli-food-falling 708)
+(defconst bli-food-delta 709)
+
+; --- Farmer displacement & food recovery circuit (P0-B) ---
+(defconst bli-farmer-displaced-by-threat 710)
+(defconst bli-farmer-displaced-count 711)
+(defconst bli-food-deficit-critical 712)
+(defconst bli-target-farms 713)
+
+; --- Builder threat response helpers (P0-A) ---
+(defconst bli-any-construction-pending 714)
+(defconst bli-pending-houses 716)
+(defconst bli-pending-barracks 717)
+(defconst bli-pending-ranges 718)
+(defconst bli-pending-stables 719)
+(defconst bli-pending-siege 720)
+(defconst bli-pending-monasteries 721)
+(defconst bli-pending-castles 722)
+(defconst bli-pending-markets 723)
+(defconst bli-pending-blacksmiths 724)
+(defconst bli-pending-universities 725)
+(defconst bli-pending-tcs 726)
+(defconst bli-pending-farms 726)
+(defconst bli-pending-lumber 727)
+(defconst bli-pending-mining 727)
+(defconst bli-pending-mills 728)
+(defconst bli-pending-palisades 728)
+(defconst bli-pending-gates 729)
+(defconst bli-pending-walls 729)
+
+; --- Content rebuild C4: mobility role flag ---
+(defconst bli-want-mobile 730)
+
+; --- Feudal farm transition state (P0-B) ---
+(defconst bli-farm-transition-state 731)
+(defconst bli-farm-transition-idle 0)
+(defconst bli-farm-transition-active 1)
+(defconst bli-farm-transition-complete 2)
+
+; --- Content rebuild C5: objective clock diagnostics ---
+(defconst bli-obj-farm-transition-missing 711)
+(defconst bli-obj-feudal-no-branch 712)
+(defconst bli-obj-castle-no-conversion 714)
+(defconst bli-obj-floating-unfunded 715)
+(defconst bli-obj-any-fail 716)
+
+; --- C5: composition role targets (desired unit counts, not booleans) ---
+(defconst bli-target-spear 711)
+(defconst bli-target-skirm 712)
+(defconst bli-target-archer 713)
+(defconst bli-target-scout 714)
+(defconst bli-target-knight 715)
+(defconst bli-target-monk 716)
+(defconst bli-target-siege 717)
+(defconst bli-target-mobile 718)
+(defconst bli-target-farms 719)
+(defconst bli-current-farms 720)
+(defconst bli-target-cata 719)
+(defconst bli-target-camel 720)
+
+; --- C5: role demand drivers (evidence accumulators, decay on strategic tick) ---
+(defconst bli-demand-spear 720)
+(defconst bli-demand-skirm 721)
+(defconst bli-demand-archer 722)
+(defconst bli-demand-scout 723)
+(defconst bli-demand-knight 724)
+(defconst bli-demand-monk 725)
+(defconst bli-demand-siege 726)
+(defconst bli-demand-mobile 727)
+(defconst bli-demand-cata 728)
+(defconst bli-demand-camel 729)
+
+; --- C5: role transition gates ---
+(defconst bli-role-spear-to-halb 729)
+(defconst bli-role-skirm-to-elite 730)
+(defconst bli-role-archer-to-xbow 731)
+(defconst bli-role-archer-to-arbalest 732)
+(defconst bli-role-scout-to-lightcav 733)
+(defconst bli-role-lightcav-to-hussar 734)
+
+; --- C5: demand system constants (global, used by composition, production, upgrades, adapt) ---
+(defconst DEMAND_DECAY 3)
+(defconst DEMAND_INC_LIGHT 3)
+(defconst DEMAND_INC_MEANINGFUL 5)
+(defconst DEMAND_INC_HEAVY 8)
+(defconst DEMAND_INC_PREDICTED 3)
+(defconst DEMAND_MAX 40)
+(defconst TARGET_SPEAR_PER_DEMAND 1)
+(defconst TARGET_SKIRM_PER_DEMAND 1)
+(defconst TARGET_ARCHER_PER_DEMAND 1)
+(defconst TARGET_SCOUT_PER_DEMAND 1)
+(defconst TARGET_KNIGHT_PER_DEMAND 1)
+(defconst TARGET_MONK_PER_DEMAND 1)
+(defconst TARGET_SIEGE_PER_DEMAND 1)
+(defconst TARGET_MOBILE_PER_DEMAND 1)
+(defconst TARGET_CATA_PER_DEMAND 1)
+(defconst TARGET_CAMEL_PER_DEMAND 1)
+(defconst TARGET_SPEAR_MIN 3)
+(defconst TARGET_SKIRM_MIN 3)
+(defconst TARGET_ARCHER_MIN 4)
+(defconst TARGET_SCOUT_MIN 3)
+(defconst TARGET_KNIGHT_MIN 2)
+(defconst TARGET_MONK_MIN 1)
+(defconst TARGET_SIEGE_MIN 1)
+(defconst TARGET_MOBILE_MIN 3)
+(defconst TARGET_CATA_MIN 2)
+(defconst TARGET_CAMEL_MIN 2)

@@ -1,0 +1,186 @@
+; Belisarius bli-memory.per — Prompt 2 INFORMATION MEMORY.
+; Latch only what was actually observed. Each *-at goal stores an EXPIRY
+; (game-time + 300s). Refresh re-arms the expiry. Decay fires only when the
+; expiry passed AND the thing is no longer visible. No omniscience.
+
+; --- touch helper: every latch also re-arms the global refresh deadline ---
+; (inlined per rule to keep single authority: memory owns its timestamps.)
+
+; --- production buildings ---
+(defrule
+  (players-building-type-count any-enemy stable >= 1)
+  (up-compare-goal bli-em-stable == bli-no)
+=>
+  (set-goal bli-em-stable bli-yes)
+  (up-modify-goal bli-em-stable-at g:= bli-game-time)
+  (up-modify-goal bli-em-stable-at c:+ 300)
+  (up-modify-goal bli-last-enemy-contact g:= bli-game-time)
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-refresh-due c:+ 300))
+(defrule
+  (players-building-type-count any-enemy stable >= 1)
+  (up-compare-goal bli-em-stable == bli-yes)
+=>
+  (up-modify-goal bli-em-stable-at g:= bli-game-time)
+  (up-modify-goal bli-em-stable-at c:+ 300)
+  (up-modify-goal bli-last-enemy-contact g:= bli-game-time)
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-refresh-due c:+ 300))
+(defrule
+  (players-building-type-count any-enemy archery-range >= 1)
+  (up-compare-goal bli-em-range == bli-no)
+=>
+  (set-goal bli-em-range bli-yes)
+  (up-modify-goal bli-em-range-at g:= bli-game-time)
+  (up-modify-goal bli-em-range-at c:+ 300)
+  (up-modify-goal bli-last-enemy-contact g:= bli-game-time)
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-refresh-due c:+ 300))
+(defrule
+  (players-building-type-count any-enemy archery-range >= 1)
+  (up-compare-goal bli-em-range == bli-yes)
+=>
+  (up-modify-goal bli-em-range-at g:= bli-game-time)
+  (up-modify-goal bli-em-range-at c:+ 300)
+  (up-modify-goal bli-last-enemy-contact g:= bli-game-time)
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-refresh-due c:+ 300))
+(defrule
+  (players-building-type-count any-enemy barracks >= 1)
+  (up-compare-goal bli-em-barracks == bli-no)
+=>
+  (set-goal bli-em-barracks bli-yes)
+  (up-modify-goal bli-em-barracks-at g:= bli-game-time)
+  (up-modify-goal bli-em-barracks-at c:+ 300)
+  (up-modify-goal bli-last-enemy-contact g:= bli-game-time)
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-refresh-due c:+ 300))
+(defrule
+  (players-building-type-count any-enemy barracks >= 1)
+  (up-compare-goal bli-em-barracks == bli-yes)
+=>
+  (up-modify-goal bli-em-barracks-at g:= bli-game-time)
+  (up-modify-goal bli-em-barracks-at c:+ 300)
+  (up-modify-goal bli-last-enemy-contact g:= bli-game-time)
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-refresh-due c:+ 300))
+(defrule
+  (players-building-type-count any-enemy siege-workshop >= 1)
+=>
+  (set-goal bli-em-siege bli-yes)
+  (up-modify-goal bli-em-siege-at g:= bli-game-time)
+  (up-modify-goal bli-em-siege-at c:+ 300)
+  (up-modify-goal bli-last-enemy-contact g:= bli-game-time)
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-refresh-due c:+ 300))
+(defrule
+  (players-building-type-count any-enemy castle >= 1)
+=>
+  (set-goal bli-em-castle bli-yes)
+  (up-modify-goal bli-em-castle-at g:= bli-game-time)
+  (up-modify-goal bli-em-castle-at c:+ 300)
+  (up-modify-goal bli-last-enemy-contact g:= bli-game-time)
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-refresh-due c:+ 300))
+
+; --- visible units: latch composition actually seen ---
+(defrule
+  (players-unit-type-count any-enemy knight-line >= 1)
+=>
+  (set-goal bli-em-knight bli-yes)
+  (up-modify-goal bli-em-knight-at g:= bli-game-time)
+  (up-modify-goal bli-em-knight-at c:+ 300)
+  (up-modify-goal bli-last-enemy-contact g:= bli-game-time)
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-refresh-due c:+ 300))
+(defrule
+  (players-unit-type-count any-enemy archer-line >= 1)
+=>
+  (set-goal bli-em-archer bli-yes)
+  (up-modify-goal bli-em-archer-at g:= bli-game-time)
+  (up-modify-goal bli-em-archer-at c:+ 300)
+  (up-modify-goal bli-last-enemy-contact g:= bli-game-time)
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-refresh-due c:+ 300))
+(defrule
+  (players-unit-type-count any-enemy monk >= 1)
+=>
+  (set-goal bli-em-monk bli-yes)
+  (up-modify-goal bli-em-monk-at g:= bli-game-time)
+  (up-modify-goal bli-em-monk-at c:+ 300)
+  (up-modify-goal bli-last-enemy-contact g:= bli-game-time)
+  (up-modify-goal bli-refresh-due g:= bli-game-time)
+  (up-modify-goal bli-refresh-due c:+ 300))
+
+; --- forward structure: enemy military building inside our town radius matters more ---
+(defrule
+  (up-building-type-in-town c: stable >= 1)
+=>
+  (set-goal bli-em-forward bli-yes)
+  (up-modify-goal bli-em-forward-at g:= bli-game-time)
+  (up-modify-goal bli-em-forward-at c:+ 300))
+(defrule
+  (up-building-type-in-town c: archery-range >= 1)
+=>
+  (set-goal bli-em-forward bli-yes)
+  (up-modify-goal bli-em-forward-at g:= bli-game-time)
+  (up-modify-goal bli-em-forward-at c:+ 300))
+(defrule
+  (up-building-type-in-town c: siege-workshop >= 1)
+=>
+  (set-goal bli-em-forward bli-yes)
+  (up-modify-goal bli-em-forward-at g:= bli-game-time)
+  (up-modify-goal bli-em-forward-at c:+ 300))
+
+; --- decay: expiry passed AND no longer visible -> no longer evidence ---
+(defrule
+  (up-compare-goal bli-em-stable == bli-yes)
+  (up-compare-goal bli-game-time g:>= bli-em-stable-at)
+  (players-building-type-count any-enemy stable <= 0)
+=>
+  (set-goal bli-em-stable bli-no))
+(defrule
+  (up-compare-goal bli-em-range == bli-yes)
+  (up-compare-goal bli-game-time g:>= bli-em-range-at)
+  (players-building-type-count any-enemy archery-range <= 0)
+=>
+  (set-goal bli-em-range bli-no))
+(defrule
+  (up-compare-goal bli-em-barracks == bli-yes)
+  (up-compare-goal bli-game-time g:>= bli-em-barracks-at)
+  (players-building-type-count any-enemy barracks <= 0)
+=>
+  (set-goal bli-em-barracks bli-no))
+(defrule
+  (up-compare-goal bli-em-knight == bli-yes)
+  (up-compare-goal bli-game-time g:>= bli-em-knight-at)
+  (players-unit-type-count any-enemy knight-line <= 0)
+=>
+  (set-goal bli-em-knight bli-no))
+(defrule
+  (up-compare-goal bli-em-archer == bli-yes)
+  (up-compare-goal bli-game-time g:>= bli-em-archer-at)
+  (players-unit-type-count any-enemy archer-line <= 0)
+=>
+  (set-goal bli-em-archer bli-no))
+; Siege and monks are transient threats: expiry + gone = abandoned plan.
+; (Castles are stone facts and correctly never decay.)
+(defrule
+  (up-compare-goal bli-em-siege == bli-yes)
+  (up-compare-goal bli-game-time g:>= bli-em-siege-at)
+  (players-building-type-count any-enemy siege-workshop <= 0)
+=>
+  (set-goal bli-em-siege bli-no))
+(defrule
+  (up-compare-goal bli-em-monk == bli-yes)
+  (up-compare-goal bli-game-time g:>= bli-em-monk-at)
+  (players-unit-type-count any-enemy monk <= 0)
+=>
+  (set-goal bli-em-monk bli-no))
+; Forward structures can't be re-checked reliably: expiry alone retires them.
+; Anything still standing re-latches on the next sighting pass.
+(defrule
+  (up-compare-goal bli-em-forward == bli-yes)
+  (up-compare-goal bli-game-time g:>= bli-em-forward-at)
+=>
+  (set-goal bli-em-forward bli-no))
